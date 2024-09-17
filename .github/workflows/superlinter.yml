@@ -1,6 +1,11 @@
 name: Super-Linter
 
-on: push
+on:
+  push:
+   branches:
+     - 'main'
+   paths-ignore:
+     - 'frontend/**'  
 
 jobs:
   super-lint:

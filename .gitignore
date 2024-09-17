@@ -1,1 +1,10 @@
 ﻿/.vs
+/handlenett-backend/web-api/HandlenettAPI/obj
+/handlenett-backend/web-api/HandlenettAPI/bin/Debug/net8.0
+/handlenett-backend/web-api/HandlenettAPI/.vs/HandlenettAPI
+/handlenett-backend/web-api/HandlenettAPI/appsettings.Development.json
+/.github/workflows/backend-api-build-deploy-azure.yml
+/handlenett-backend/web-api/HandlenettAPI/appsettings.json
+/handlenett-backend/web-api/HandlenettAPI/HandlenettAPI.csproj.user
+/handlenett-backend/web-api/HandlenettAPI/Properties/serviceDependencies.local.json.user
+/handlenett-backend/web-api/HandlenettAPI/Properties/serviceDependencies.local.json

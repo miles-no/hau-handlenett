@@ -10,9 +10,13 @@ const item = ref('')
 const emit = defineEmits(['changed'])
 
 const update = () => {
-    const objCopy = Object.assign({}, { name: item.value, isComplete: false })
-    emit('changed', objCopy)
+    emit('changed', { name: item.value, isComplete: false })
     item.value = ''
 }
 </script>
-<style scoped></style>
+<style scoped>
+form {
+    padding: 1rem;
+    font-size: 1.5rem;
+}
+</style>

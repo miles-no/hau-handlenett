@@ -30,7 +30,7 @@ jobs:
         with:
           context: handlenett-backend/web-api/HandlenettAPI
           push: true
-          tags: ${{ secrets.AZURE_CR_NAME_BACKEND_WEB_API }}.azurecr.io/handlenett-api:latest
+          tags: ${{ secrets.AZURE_ACR_REGISTRY_URL  }}.azurecr.io/handlenett-api:latest
 
       # - name: Deploy to Azure Web App
       #   uses: azure/webapps-deploy@v2

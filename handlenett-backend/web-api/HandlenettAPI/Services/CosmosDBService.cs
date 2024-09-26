@@ -15,12 +15,14 @@ namespace HandlenettAPI.Services
             _container = client.GetContainer(databaseName, containerName);
         }
 
-        public async Task<Item> Add (ItemPostDTO item)
+        public async Task<Item> Add (ItemPostDTO item, string username)
         {
             var addItem = new Item()
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = item.Name
+                Name = item.Name,
+                CreatedBy = username,
+                UpdatedBy = username
             };
 
             var createdItem = await _container.CreateItemAsync<Item>(addItem, new PartitionKey(addItem.CreatedBy));
@@ -29,10 +31,10 @@ namespace HandlenettAPI.Services
 
         public async Task Delete (string id, string partition)
         {
-            await _container.DeleteItemAsync<Item>(id, new PartitionKey(partition)); //les på partitions
+            await _container.DeleteItemAsync<Item>(id, new PartitionKey(partition)); //partitions er satt til createdBy
         }
 
-        public async Task<List<Item>> Get (string cosmosQuery)
+        public async Task<List<Item>> GetByQuery (string cosmosQuery)
         {
             var query = _container.GetItemQueryIterator<Item>(new QueryDefinition(cosmosQuery));
             List<Item> results = new List<Item> ();
@@ -46,19 +48,29 @@ namespace HandlenettAPI.Services
             return results; //convert to ItemGetDTO
         }
 
-        public async Task<Item> Update (ItemPutDTO item)
+        public Item? GetById(string id)
+        {
+            var item = _container.GetItemLinqQueryable<Item>(true)
+                .Where(x => x.Id == id)
+                .AsEnumerable()
+                .FirstOrDefault();
+
+            return item; //null, dto
+        }
+
+        public async Task<Item> Update (string id, ItemPutDTO item, string username)
         {
             Item? updateItem = _container.GetItemLinqQueryable<Item>(true)
-                .Where(x => x.Id == item.Id)
+                .Where(x => x.Id == id)
                 .AsEnumerable()
                 .FirstOrDefault();
 
             if (updateItem == null)
                 throw new Exception("Wrong id");
 
-            //updateItem.name = item.name;
+            updateItem.Name = item.Name;
             updateItem.UpdatedDate = DateTime.UtcNow;
-            updateItem.UpdatedBy = "r";
+            updateItem.UpdatedBy = username;
             updateItem.IsCompleted = item.IsCompleted;
 
             var updatedItem = await _container.UpsertItemAsync<Item>(updateItem, new PartitionKey(updateItem.Id));

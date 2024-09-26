@@ -9,7 +9,6 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Swagger configuration
 builder.Services.AddSwaggerGen(c =>
 {
@@ -43,11 +42,6 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
-
-
-
-
-
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
@@ -59,7 +53,6 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 
 
 builder.Configuration.AddAzureKeyVault(
@@ -93,7 +86,6 @@ if (app.Environment.IsDevelopment())
         c.OAuthClientId("6409e25f-f9b7-4b70-a84c-6c077440d740");
         c.OAuthAppName("Your API Swagger");
     });
-    //builder.Configuration.AddSecretClient(); //trenger dev vault uri
 }
 
 app.UseHttpsRedirection();

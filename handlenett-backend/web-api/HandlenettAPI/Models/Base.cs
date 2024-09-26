@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json;
 
 namespace HandlenettAPI.Models
 {
@@ -8,10 +9,10 @@ namespace HandlenettAPI.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [JsonProperty("createdBy")]
-        public string CreatedBy { get; set; } = "r";
+        public string CreatedBy { get; set; } = "";
 
         [JsonProperty("updatedBy")]
-        public string UpdatedBy { get; set; } = "r";
+        public string UpdatedBy { get; set; } = "";
 
         [JsonProperty("createdDate")]
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;

@@ -17,11 +17,11 @@ namespace HandlenettAPI.Controllers
     public class ItemController : ControllerBase
     {
         private readonly GraphServiceClient _graphServiceClient;
-        private static readonly List<Item> SampleItems = new List<Item>();
+        private static readonly List<Item> SampleItems = new List<Item>(); //asd
         private readonly ILogger<ItemController> _logger;
         private readonly IConfiguration _config;
 
-        public readonly CosmosDBService _cosmosDBService; //trenger den å være public?
+        public readonly CosmosDBService _cosmosDBService; //trenger den Ã¥ vÃ¦re public?
 
         public ItemController(ILogger<ItemController> logger, GraphServiceClient graphServiceClient, IConfiguration config)
         {

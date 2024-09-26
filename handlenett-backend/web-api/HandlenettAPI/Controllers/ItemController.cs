@@ -17,7 +17,7 @@ namespace HandlenettAPI.Controllers
     public class ItemController : ControllerBase
     {
         private readonly GraphServiceClient _graphServiceClient;
-        private static readonly List<Item> SampleItems = new List<Item>(); //asd
+        private static readonly List<Item> SampleItems = new List<Item>();
         private readonly ILogger<ItemController> _logger;
         private readonly IConfiguration _config;
 

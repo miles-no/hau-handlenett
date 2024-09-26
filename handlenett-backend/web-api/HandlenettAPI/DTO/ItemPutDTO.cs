@@ -1,8 +1,8 @@
-﻿namespace HandlenettAPI.Models
-{
-    using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-    public class Item : Base
+namespace HandlenettAPI.DTO
+{
+    public class ItemPutDTO
     {
         [JsonProperty("name")]
         public string Name { get; set; } = string.Empty;

@@ -88,7 +88,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+//test
 app.UseAuthentication();
 
 app.UseAuthorization();

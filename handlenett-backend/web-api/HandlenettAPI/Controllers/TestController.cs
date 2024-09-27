@@ -1,11 +1,4 @@
-﻿using HandlenettAPI.Models;
-using HandlenettAPI.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Graph;
-using Microsoft.Identity.Web.Resource;
-using System.Configuration;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace HandlenettAPI.Controllers
 {
@@ -16,7 +9,7 @@ namespace HandlenettAPI.Controllers
         [HttpGet]
         public ActionResult<string> Get()
         {
-            return Ok("Hello from Azure v13");
+            return Ok("Hello from Azure v14");
         }
     }
 }

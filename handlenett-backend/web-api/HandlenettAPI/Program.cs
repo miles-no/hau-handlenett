@@ -41,7 +41,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
@@ -52,13 +51,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Configuration.AddAzureKeyVault(
         new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
         new DefaultAzureCredential());
+//DefaultAzureCredential() is handled by enabling system assigned identity on container app and creating access policy in kv
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//DefaultAzureCredential() is handled by enabling system assigned identity on container app and creating access policy in kv
 
 
 

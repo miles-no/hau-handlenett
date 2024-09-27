@@ -9,13 +9,11 @@ namespace HandlenettAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<ItemController> _logger;
-        private readonly GraphServiceClient _graphServiceClient;
         private readonly IConfiguration _config;
 
         public UserController(ILogger<ItemController> logger, GraphServiceClient graphServiceClient, IConfiguration config)
         {
             _logger = logger;
-            _graphServiceClient = graphServiceClient;
             _config = config;
         }
 

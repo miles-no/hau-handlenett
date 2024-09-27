@@ -16,43 +16,39 @@ namespace HandlenettAPI.Controllers
     [RequiredScope(RequiredScopesConfigurationKey = "AzureAd:Scopes")]
     public class ItemController : ControllerBase
     {
-        private readonly GraphServiceClient _graphServiceClient;
-        private static readonly List<Item> SampleItems = new List<Item>(); //run workflow
         private readonly ILogger<ItemController> _logger;
         private readonly IConfiguration _config;
+        private readonly CosmosDBService _cosmosDBService; 
 
-        public readonly CosmosDBService _cosmosDBService; //trenger den å være public?
-
-        public ItemController(ILogger<ItemController> logger, GraphServiceClient graphServiceClient, IConfiguration config)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _config = config ?? throw new ArgumentNullException(nameof(logger));
-
-            _graphServiceClient = graphServiceClient; //se docs for muligheter her
-
-            if (string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:DatabaseName"))
-                || string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:ContainerName")))
-            {
-                throw new ConfigurationErrorsException("Missing values");
-            }
-
-            var vClient = new CosmosClient(_config.GetValue<string>("AzureCosmosDBSettings:ConnectionString"));
-            _cosmosDBService = new CosmosDBService(vClient, _config.GetValue<string>("AzureCosmosDBSettings:DatabaseName"), _config.GetValue<string>("AzureCosmosDBSettings:ContainerName"));
-        }
-
-        //[HttpGet(Name = "testing graph")]
-        //public async Task<string> Get()
-        //{
-        //    var user = await _graphServiceClient.Me.Request().GetAsync();
-        //    return _config.GetValue<string>("AllowedHosts");
-        //}
-
-        [HttpGet(Name = "GetItems")]
-        public async Task<ActionResult<List<Item>>> Get() //best practice? Eller bare Task<returnType> ?
+        public ItemController(ILogger<ItemController> logger, IConfiguration config)
         {
             try
             {
-            var sqlQuery = "SELECT * FROM c"; //ORDER BY c.created ?
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+                _config = config ?? throw new ArgumentNullException(nameof(config));
+
+                if (string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:DatabaseName"))
+                    || string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:ContainerName"))
+                    || string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:ConnectionString")))
+                {
+                    throw new ConfigurationErrorsException("Missing CosmosDB config values");
+                }
+
+                _cosmosDBService = new CosmosDBService(new CosmosClient(_config.GetValue<string>("AzureCosmosDBSettings:ConnectionString")), _config.GetValue<string>("AzureCosmosDBSettings:DatabaseName"), _config.GetValue<string>("AzureCosmosDBSettings:ContainerName"));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed in constructor");
+                throw new Exception("Something went wrong");
+            }
+        }
+
+        [HttpGet(Name = "GetItems")]
+        public async Task<ActionResult<List<Item>>> Get()
+        {
+            try
+            {
+            var sqlQuery = "SELECT * FROM c"; //ORDER BY c.created ? feiler dersom ingen items
             var result = await _cosmosDBService.GetByQuery(sqlQuery);
             return Ok(result); 
             }

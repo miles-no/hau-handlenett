@@ -55,9 +55,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-builder.Configuration.AddAzureKeyVault(
-        new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
-        new DefaultAzureCredential());
+//builder.Configuration.AddAzureKeyVault(
+//        new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
+//        new DefaultAzureCredential());
 
 //if (builder.Environment.IsProduction())
 //{

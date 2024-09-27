@@ -16,7 +16,7 @@ namespace HandlenettAPI.Controllers
         [HttpGet]
         public ActionResult<string> Get()
         {
-            return Ok("Hello from Azure v5");
+            return Ok("Hello from Azure v6");
         }
     }
 }

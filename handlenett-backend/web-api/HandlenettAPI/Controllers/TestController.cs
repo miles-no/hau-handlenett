@@ -14,19 +14,10 @@ namespace HandlenettAPI.Controllers
     [Route("[controller]")]
     public class TestController : ControllerBase
     {
-        //private readonly ILogger<ItemController> _logger;
-        //private readonly IConfiguration _config;
-
-        public TestController()//(ILogger<ItemController> logger, IConfiguration config)
-        {
-            //_logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            //_config = config ?? throw new ArgumentNullException(nameof(logger));
-        }
-
         [HttpGet]
         public ActionResult<string> Get()
         {
-            return Ok("Hello from Azure v3");
+            return Ok("Hello from Azure v4");
         }
     }
 }

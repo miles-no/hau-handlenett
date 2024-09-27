@@ -43,16 +43,11 @@ builder.Services.AddSwaggerGen(c =>
 
 
 // Add services to the container.
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
-//        .EnableTokenAcquisitionToCallDownstreamApi()
-//            .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
-//            .AddInMemoryTokenCaches();
-
-
-//Mads setup
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
+        .EnableTokenAcquisitionToCallDownstreamApi()
+            .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
+            .AddInMemoryTokenCaches();
 
 
 builder.Services.AddControllers();
@@ -94,8 +89,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-//test
-//app.UseAuthentication();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

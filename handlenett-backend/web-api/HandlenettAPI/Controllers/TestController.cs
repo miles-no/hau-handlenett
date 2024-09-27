@@ -26,7 +26,7 @@ namespace HandlenettAPI.Controllers
         [HttpGet]
         public ActionResult<string> Get()
         {
-            return Ok("Hello from Azure");
+            return Ok("Hello from Azure v2");
         }
     }
 }

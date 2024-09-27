@@ -13,7 +13,7 @@ namespace HandlenettAPI.Controllers
     [Route("[controller]")]
     public class TestController : ControllerBase
     {
-        private readonly ILogger<ItemController> _logger; //test
+        private readonly ILogger<ItemController> _logger;
         private readonly IConfiguration _config;
 
         public TestController(ILogger<ItemController> logger, IConfiguration config)

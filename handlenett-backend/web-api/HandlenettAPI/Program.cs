@@ -55,9 +55,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//builder.Configuration.AddAzureKeyVault(
-//        new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
-//        new DefaultAzureCredential());
+builder.Configuration.AddAzureKeyVault(
+        new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
+        new DefaultAzureCredential()); 
+//DefaultAzureCredential() is handled by enabling system assigned identity on container app and creating access policy in kv
+
+
 
 //if (builder.Environment.IsProduction())
 //{

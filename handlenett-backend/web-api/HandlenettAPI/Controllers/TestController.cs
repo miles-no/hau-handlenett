@@ -9,7 +9,6 @@ using System.Configuration;
 
 namespace HandlenettAPI.Controllers
 {
-    [AllowAnonymous]
     [ApiController]
     [Route("[controller]")]
     public class TestController : ControllerBase

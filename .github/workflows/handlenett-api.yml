@@ -1,4 +1,4 @@
-name: Build and Deploy to Azure Web App
+name: Build and Deploy to Azure Container App
 
 on:
   push:
@@ -22,20 +22,31 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.AZURE_ACR_REGISTRY_URL }}
-          username: ${{ secrets.AZURE_ACR_USERNAME }} 
-          password: ${{ secrets.AZURE_ACR_PASSWORD }} 
+          username: ${{ secrets.AZURE_ACR_USERNAME }}
+          password: ${{ secrets.AZURE_ACR_PASSWORD }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: handlenett-backend/web-api/HandlenettAPI
           push: true
-          tags: ${{ secrets.AZURE_ACR_REGISTRY_URL  }}/handlenett-api:latest
+          tags: |
+            ${{ secrets.AZURE_ACR_REGISTRY_URL }}/handlenett-api:latest
+            ${{ secrets.AZURE_ACR_REGISTRY_URL }}/handlenett-api:${{ github.sha }}
 
-      # - name: Deploy to Azure Web App
-      #   uses: azure/webapps-deploy@v2
-      #   with:
-      #     app-name: handlenett-api
-      #     slot-name: production
-      #     publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-      #     images: ${{ secrets.AZURE_CR_NAME_BACKEND_WEB_API }}.azurecr.io/handlenett-api:latest
+      - name: Log in to Azure - App Registration Credentials
+        uses: azure/login@v1
+        with:
+          creds: |
+            {
+              "clientId": "${{ secrets.AZURE_CLIENT_ID_BACKEND_WEB_API }}",
+              "clientSecret": "${{ secrets.AZURE_SECRET_ID_BACKEND_WEB_API }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+            }
+
+      - name: Update Azure Container App with new image
+        run: |
+          az containerapp update --name handlenett-api --resource-group handlenett-rg \
+            --image ${{ secrets.AZURE_ACR_REGISTRY_URL }}/handlenett-api:${{ github.sha }} \
+            --container-name handlenett-api

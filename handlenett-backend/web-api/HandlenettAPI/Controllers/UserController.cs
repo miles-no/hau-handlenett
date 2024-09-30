@@ -1,4 +1,5 @@
 ﻿using HandlenettAPI.Models;
+using HandlenettAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 
@@ -16,6 +17,16 @@ namespace HandlenettAPI.Controllers
             _logger = logger;
             _config = config;
         }
+
+        [HttpGet(Name = "GetUsers")]
+        public async Task<List<Models.User>> Get()
+        {
+            //Get all users, må bare endre til dto
+            var dbService = new UserService(_config);
+            return dbService.GetUsers();
+
+        }
+
 
         //[HttpGet(Name = "GetUser")]
         //public async Task<Microsoft.Graph.User> Get()

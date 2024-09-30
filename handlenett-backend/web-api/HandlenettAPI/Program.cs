@@ -44,7 +44,7 @@ builder.Services.AddSwaggerGen(c =>
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
-        .EnableTokenAcquisitionToCallDownstreamApi()
+        .EnableTokenAcquisitionToCallDownstreamApi() // new[] { "https://graph.microsoft.com/.default" }
             .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
             .AddInMemoryTokenCaches();
 

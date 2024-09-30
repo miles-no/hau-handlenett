@@ -11,11 +11,13 @@ namespace HandlenettAPI.Controllers
     {
         private readonly ILogger<ItemController> _logger;
         private readonly IConfiguration _config;
+        private readonly GraphServiceClient _graphClient;
 
         public UserController(ILogger<ItemController> logger, GraphServiceClient graphServiceClient, IConfiguration config)
         {
             _logger = logger;
             _config = config;
+            _graphClient = graphServiceClient;
         }
 
         [HttpGet(Name = "GetUsers")]
@@ -23,6 +25,10 @@ namespace HandlenettAPI.Controllers
         {
             //Get all users, må bare endre til dto
             var dbService = new UserService(_config);
+
+            //not ready, msal auth issue in graph api
+            await dbService.AddUserIfNotExists(_graphClient);
+
             return dbService.GetUsers();
 
         }

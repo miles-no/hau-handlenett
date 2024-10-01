@@ -52,7 +52,7 @@ namespace HandlenettAPI.Services
         }
 
 
-        private bool CheckIfUserExists(Guid userId) 
+        private bool CheckIfUserExists(Guid userId)
         {
             using (var db = new AzureSQLContext(_config))
             {
@@ -72,8 +72,8 @@ namespace HandlenettAPI.Services
         {
             using (var db = new AzureSQLContext(_config))
             {
-                var newUser = new Models.User 
-                { 
+                var newUser = new Models.User
+                {
                     Id = new Guid(user.Id),
                     FirstName = user.GivenName,
                     LastName = user.Surname

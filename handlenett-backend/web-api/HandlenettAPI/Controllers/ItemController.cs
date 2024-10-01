@@ -83,7 +83,7 @@ namespace HandlenettAPI.Controllers
         public async Task<IActionResult> Add(ItemPostDTO item)
         {
             try
-            { 
+            {
                 var result = await _cosmosDBService.Add(item, GetUsername());
                 return Ok(result);
             }

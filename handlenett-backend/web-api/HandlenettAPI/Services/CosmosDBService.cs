@@ -74,7 +74,7 @@ namespace HandlenettAPI.Services
             updateItem.UpdatedBy = username;
             updateItem.IsCompleted = item.IsCompleted;
 
-            var updatedItem = await _container.UpsertItemAsync<Item>(updateItem, new PartitionKey(updateItem.Id));
+            var updatedItem = await _container.UpsertItemAsync<Item>(updateItem, new PartitionKey(updateItem.CreatedBy));
             return updatedItem;
         }
     }

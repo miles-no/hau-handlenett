@@ -2,6 +2,12 @@
 
 Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
+
+## Environment variables
+
+Copy .env.example and rename it .env
+As of this writing, the environment variables should be the same.
+
 ## Setup
 
 Make sure to install the dependencies:

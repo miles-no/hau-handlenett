@@ -15,7 +15,7 @@ namespace HandlenettAPI.Services
             _container = client.GetContainer(databaseName, containerName);
         }
 
-        public async Task<Item> Add (ItemPostDTO item, string username)
+        public async Task<Item> Add(ItemPostDTO item, string username)
         {
             var addItem = new Item()
             {
@@ -29,15 +29,15 @@ namespace HandlenettAPI.Services
             return createdItem;
         }
 
-        public async Task Delete (string id, string partition)
+        public async Task Delete(string id, string partition)
         {
             await _container.DeleteItemAsync<Item>(id, new PartitionKey(partition)); //partitions er satt til createdBy
         }
 
-        public async Task<List<Item>> GetByQuery (string cosmosQuery)
+        public async Task<List<Item>> GetByQuery(string cosmosQuery)
         {
             var query = _container.GetItemQueryIterator<Item>(new QueryDefinition(cosmosQuery));
-            List<Item> results = new List<Item> ();
+            List<Item> results = new List<Item>();
 
             while (query.HasMoreResults) //best practice?
             {
@@ -58,7 +58,7 @@ namespace HandlenettAPI.Services
             return item; //null, dto
         }
 
-        public async Task<Item> Update (string id, ItemPutDTO item, string username)
+        public async Task<Item> Update(string id, ItemPutDTO item, string username)
         {
             Item? updateItem = _container.GetItemLinqQueryable<Item>(true)
                 .Where(x => x.Id == id)
@@ -73,7 +73,7 @@ namespace HandlenettAPI.Services
             updateItem.UpdatedBy = username;
             updateItem.IsCompleted = item.IsCompleted;
 
-            var updatedItem = await _container.UpsertItemAsync<Item>(updateItem, new PartitionKey(updateItem.Id));
+            var updatedItem = await _container.UpsertItemAsync<Item>(updateItem, new PartitionKey(updateItem.CreatedBy));
             return updatedItem;
         }
     }

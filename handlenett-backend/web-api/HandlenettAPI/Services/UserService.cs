@@ -26,7 +26,7 @@ namespace HandlenettAPI.Services
                         .OrderBy(u => u.Name)
                         .ToList();
 
-                    return users.ConvertToList<UserDTO>();
+                    return users == null ? [] : users.ConvertToList<UserDTO>();
                 }
             }
             catch (SqlException ex)
@@ -46,12 +46,7 @@ namespace HandlenettAPI.Services
                         .Where(u => u.Id == id)
                         .FirstOrDefault();
 
-                    if (user == null)
-                    {
-                        throw new InvalidOperationException("User not found");
-                    }
-
-                    return user.ConvertTo<UserDTO>();
+                    return user == null ? throw new InvalidOperationException("User not found") : user.ConvertTo<UserDTO>();
                 }
             }
             catch (SqlException ex)
@@ -76,7 +71,6 @@ namespace HandlenettAPI.Services
             }
         }
 
-
         private bool CheckIfUserExists(Guid userId)
         {
             using (var db = new AzureSQLContext(_config))
@@ -93,7 +87,7 @@ namespace HandlenettAPI.Services
             }
         }
 
-        private bool AddUser(Microsoft.Graph.User user)
+        private void AddUser(Microsoft.Graph.User user)
         {
             using (var db = new AzureSQLContext(_config))
             {
@@ -105,7 +99,6 @@ namespace HandlenettAPI.Services
                 };
                 db.Users.Add(newUser);
                 db.SaveChanges();
-                return true;
             }
         }
     }

@@ -5,7 +5,7 @@
                 <!-- <img src="~/assets/images/microsoft.png" height="180" /> -->
             </div>
             <div class="text">
-                <h1>MSAL Authentication in Nuxt3</h1>
+                <h1>Login</h1>
             </div>
             <div class="button">
                 <button class="btn" @click="loginUser">Login with Microsoft 365</button>

@@ -2,54 +2,55 @@
     <div v-if="loading" class="loadData">
         <div class="loader"></div>
     </div>
-    <div class="home-container" v-else>
-        <!-- <div class="profile" v-if="profileImg">
-            <img :src="profileImg" width="250" class="profile-image" />
+
+    <h1>Handlenett</h1>
+    <div>
+        <div style="margin-bottom: 2rem;">
+            <Item v-for="i in items" :name="i.name" :isComplete="i.isComplete" :id="i.id" :key="i.id"
+                @changed="updatedItem" @delete="deleteItem" />
         </div>
-        <div class="initials-container" v-else>
-            <div class="initials">{{ initials }}</div>
-        </div>
-        <div class="name">
-            <h1>Welcome, {{ profile.displayName }}!</h1>
-        </div>
-        <div class="email">
-            <h4>{{ profile.mail }}</h4>
-        </div>
-        <div class="username">
-            <h2>{{ profile.jobTitle }}</h2>
-        </div>
-        <div class="phone" v-if="profile.mobilePhone">
-            <h4>Phone no. : {{ profile.mobilePhone }}</h4>
-        </div> -->
-        <div class="button" @click="logout">
-            <button class="logout-btn">Logout</button>
-        </div>
+        <NewItem @changed="newItem"></NewItem>
     </div>
 
-    <!-- <pre>
-        {{ profile }}
-    </pre> -->
 </template>
 <script setup>
-const { $profileInfo, $logout } = useNuxtApp()
-const profile = ref()
-const profileImg = ref()
+import { ref } from 'vue'
+const items = ref([])
+
 const loading = ref(true)
 
-const logout = async () => {
-    await $logout()
-}
 onMounted(async () => {
+
     loading.value = true
-    const profileInfo = await $profileInfo()
-    profile.value = profileInfo
+    useHttp('Item', 'GET').then(data => {
+        items.value = data;
+    });
     loading.value = false
 })
-const initials = ref()
-const getInitials = () => {
-    const nameArray = profile.value.displayName.split(' ')
-    const fletter = nameArray[0].charAt(0)
-    const lletter = nameArray[1].charAt(0)
-    initials.value = fletter + lletter
+
+const updatedItem = (updatedItem) => {
+    useHttp(`Item/${updatedItem.id}`, 'PUT', { name: updatedItem.name, isComplete: updatedItem.isComplete }).then(data => {
+        let i = items.value.find(i => i.id === updatedItem.id)
+        const idx = items.value.indexOf(i)
+        items.value[idx] = updatedItem;
+    });
 }
+
+const newItem = (newItem) => {
+    if (newItem.name === '') return
+
+    useHttp('Item', 'POST', { name: newItem.name }).then(data => {
+        items.value.push({ name: data.name, isComplete: data.isComplete, id: data.id })
+    });
+
+}
+
+const deleteItem = (deleteItem) => {
+    useHttp(`Item/${deleteItem.id}`, 'DELETE').then(data => {
+        let i = items.value.find(i => i.id === deleteItem.id)
+        const idx = items.value.indexOf(i)
+        items.value.splice(idx, 1)
+    });
+}
+
 </script>

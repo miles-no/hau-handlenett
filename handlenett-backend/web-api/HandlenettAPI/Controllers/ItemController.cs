@@ -18,7 +18,7 @@ namespace HandlenettAPI.Controllers
     {
         private readonly ILogger<ItemController> _logger;
         private readonly IConfiguration _config;
-        private readonly CosmosDBService _cosmosDBService; 
+        private readonly CosmosDBService _cosmosDBService;
 
         public ItemController(ILogger<ItemController> logger, IConfiguration config)
         {
@@ -48,9 +48,9 @@ namespace HandlenettAPI.Controllers
         {
             try
             {
-            var sqlQuery = "SELECT * FROM c"; //ORDER BY c.created ? feiler dersom ingen items
-            var result = await _cosmosDBService.GetByQuery(sqlQuery);
-            return Ok(result); 
+                var sqlQuery = "SELECT * FROM c"; //ORDER BY c.created ? feiler dersom ingen items
+                var result = await _cosmosDBService.GetByQuery(sqlQuery);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -83,9 +83,9 @@ namespace HandlenettAPI.Controllers
         public async Task<IActionResult> Add(ItemPostDTO item)
         {
             try
-            { 
-            var result = await _cosmosDBService.Add(item, GetUsername());
-            return Ok(result);
+            {
+                var result = await _cosmosDBService.Add(item, GetUsername());
+                return Ok(result);
             }
             catch (Exception ex)
             {

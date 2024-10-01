@@ -10,6 +10,7 @@ namespace HandlenettAPI.Services
     public class CosmosDBService//<T> where T : IBase //Lag generisk, støtte for andre enn Item struktur, basert på containerName?
     {
         private readonly Container _container;
+
         public CosmosDBService(CosmosClient client, string databaseName, string containerName)
         {
             _container = client.GetContainer(databaseName, containerName);

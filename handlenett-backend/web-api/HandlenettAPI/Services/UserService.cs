@@ -1,5 +1,4 @@
-﻿using HandlenettAPI.Models;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.Graph;
 
 namespace HandlenettAPI.Services
@@ -8,7 +7,7 @@ namespace HandlenettAPI.Services
     public class UserService
     {
         private IConfiguration _config;
-        public UserService(IConfiguration config) 
+        public UserService(IConfiguration config)
         {
             _config = config;
         }
@@ -37,9 +36,52 @@ namespace HandlenettAPI.Services
 
         public async Task<Models.User> AddUserIfNotExists(GraphServiceClient graphServiceClient)
         {
-            await graphServiceClient.Me.Request().GetAsync();
+            var myUser = await graphServiceClient.Me.Request().GetAsync();
+
+            if (myUser == null)
+            {
+                throw new Exception("Could not get Ad profile");
+            }
+
+            if (!CheckIfUserExists(new Guid(myUser.Id)))
+            {
+                AddUser(myUser);
+            }
 
             return new Models.User();
+        }
+
+
+        private bool CheckIfUserExists(Guid userId) 
+        {
+            using (var db = new AzureSQLContext(_config))
+            {
+                var users = db.Users
+                    .Where(u => u.Id == userId)
+                    .FirstOrDefault();
+
+                if (users != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        private bool AddUser(Microsoft.Graph.User user)
+        {
+            using (var db = new AzureSQLContext(_config))
+            {
+                var newUser = new Models.User 
+                { 
+                    Id = new Guid(user.Id),
+                    FirstName = user.GivenName,
+                    LastName = user.Surname
+                };
+                db.Users.Add(newUser);
+                db.SaveChanges();
+                return true;
+            }
         }
     }
 }

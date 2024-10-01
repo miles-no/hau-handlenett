@@ -1,10 +1,13 @@
-﻿using HandlenettAPI.Models;
+﻿using Azure.Identity;
+using HandlenettAPI.Models;
 using HandlenettAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 
 namespace HandlenettAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UserController : ControllerBase
@@ -23,33 +26,18 @@ namespace HandlenettAPI.Controllers
         [HttpGet(Name = "GetUsers")]
         public async Task<List<Models.User>> Get()
         {
-            //Get all users, må bare endre til dto
-            var dbService = new UserService(_config);
+            try
+            {
+                var dbService = new UserService(_config);
+                await dbService.AddUserIfNotExists(_graphClient);
 
-            //not ready, msal auth issue in graph api
-            await dbService.AddUserIfNotExists(_graphClient);
-
-            return dbService.GetUsers();
-
+                return dbService.GetUsers(); //endre til dto
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get users");
+                throw new Exception("Failed to get users");
+            }
         }
-
-
-        //[HttpGet(Name = "GetUser")]
-        //public async Task<Microsoft.Graph.User> Get()
-        //{
-        //    return await _graphServiceClient.Me.Request().GetAsync(); ;
-        //}
-
-        //[HttpGet("Login")]
-        //public async Task<bool> Login()
-        //{
-        //    return true;
-        //}
-
-        //[HttpGet("Logout")]
-        //public async Task<bool> Logout()
-        //{
-        //    return true;
-        //}
     }
 }

@@ -80,7 +80,7 @@ namespace HandlenettAPI.Services
             }
             else
             {
-                connectionString = _config.GetConnectionString("AzureSQLDB_Local");
+                connectionString = _config.GetConnectionString("AzureSQLDBForLocalTesting");
 
                 var azureCredential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
                 {

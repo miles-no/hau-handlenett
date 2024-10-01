@@ -10,21 +10,34 @@
     <!-- <pre>
       {{ items }}
     </pre> -->
+    <NuxtPage />
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
-const items = ref([{ id: "1", name: 'Juice', isComplete: false }, { id: "2", name: 'Jubelsalami', isComplete: true }])
+const items = ref([])
 
 const updatedItem = (updatedItem) => {
-  let i = items.value.find(i => i.id === updatedItem.id)
-  const idx = items.value.indexOf(i)
-  items.value[idx] = updatedItem;
+  useHttp(`Item/${updatedItem.id}`, 'PUT', { name: updatedItem.name, isComplete: updatedItem.isComplete }).then(data => {
+    let i = items.value.find(i => i.id === updatedItem.id)
+    const idx = items.value.indexOf(i)
+    items.value[idx] = updatedItem;
+  });
 }
 
 const newItem = (newItem) => {
   if (newItem.name === '') return
-  items.value.push({ name: newItem.name, isComplete: newItem.isComplete, id: Math.random().toString(36).substr(2, 9) })
+
+  useHttp('Item', 'POST', { name: newItem.name }).then(data => {
+    items.value.push({ name: data.name, isComplete: data.isComplete, id: data.id })
+  });
+
 }
+
+onMounted(async () => {
+  useHttp('Item', 'GET').then(data => {
+    items.value = data;
+  });
+})
 
 </script>

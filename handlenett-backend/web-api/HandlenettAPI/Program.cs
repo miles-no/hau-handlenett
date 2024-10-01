@@ -1,6 +1,5 @@
 using Azure.Identity;
 using HandlenettAPI.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Azure;
 using Microsoft.Graph;
@@ -39,6 +38,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+const string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+    builder =>
+    {
+        builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().WithOrigins("http://localhost:3000", "http://localhost:3000");
+    });
+});
+
+
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
@@ -58,7 +68,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//TODO: Fiks dev miljø for key vault
+//TODO: Fiks dev miljÃ¸ for key vault
 //if (builder.Environment.IsProduction())
 //{
 //    builder.Configuration.AddAzureKeyVault(
@@ -85,10 +95,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseCors(MyAllowSpecificOrigins);
+
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers().RequireCors(MyAllowSpecificOrigins);
 
 ConfigurationHelper.Initialize(app.Configuration);
 

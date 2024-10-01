@@ -1,5 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Graph;
+using HandlenettAPI.Helpers;
+using HandlenettAPI.DTO;
 
 namespace HandlenettAPI.Services
 {
@@ -13,7 +15,7 @@ namespace HandlenettAPI.Services
         }
 
 
-        public List<Models.User> GetUsers()
+        public List<UserDTO> GetUsers()
         {
             try
             {
@@ -24,7 +26,7 @@ namespace HandlenettAPI.Services
                         .OrderBy(u => u.Name)
                         .ToList();
 
-                    return users;
+                    return users.ConvertToList<UserDTO>();
                 }
             }
             catch (SqlException ex)
@@ -34,7 +36,32 @@ namespace HandlenettAPI.Services
             }
         }
 
-        public async Task<Models.User> AddUserIfNotExists(GraphServiceClient graphServiceClient)
+        public UserDTO GetUser(Guid id)
+        {
+            try
+            {
+                using (var db = new AzureSQLContext(_config))
+                {
+                    var user = db.Users
+                        .Where(u => u.Id == id)
+                        .FirstOrDefault();
+
+                    if (user == null)
+                    {
+                        throw new InvalidOperationException("User not found");
+                    }
+
+                    return user.ConvertTo<UserDTO>();
+                }
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public async Task AddUserIfNotExists(GraphServiceClient graphServiceClient)
         {
             var myUser = await graphServiceClient.Me.Request().GetAsync();
 
@@ -47,8 +74,6 @@ namespace HandlenettAPI.Services
             {
                 AddUser(myUser);
             }
-
-            return new Models.User();
         }
 
 

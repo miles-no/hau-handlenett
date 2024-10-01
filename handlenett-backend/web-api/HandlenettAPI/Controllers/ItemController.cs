@@ -109,12 +109,13 @@ namespace HandlenettAPI.Controllers
             }
         }
 
-        [HttpDelete(Name = "DeleteItem")]
+        [HttpDelete("{id}", Name = "DeleteItem")]
         public async Task<IActionResult> Delete(string id)
         {
             try
             {
                 await _cosmosDBService.Delete(id, GetUsername());
+                //TODO: add feature if user tries to delete an item that someone else created (if GetUsername() != CreatedBy)
                 return Ok();
             }
             catch (Exception ex)

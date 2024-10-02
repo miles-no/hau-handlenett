@@ -9,12 +9,14 @@ namespace HandlenettAPI.Controllers
         protected readonly ILogger<BaseController> _logger;
         protected readonly IConfiguration _config;
         protected readonly GraphServiceClient _graphClient;
+        protected readonly SlackService _slackService;
 
-        protected BaseController(ILogger<BaseController> logger, GraphServiceClient graphServiceClient, IConfiguration config)
+        protected BaseController(ILogger<BaseController> logger, GraphServiceClient graphServiceClient, IConfiguration config, SlackService slackService)
         {
             _logger = logger;
             _config = config;
             _graphClient = graphServiceClient;
+            _slackService = slackService;
         }
 
         protected async Task InitializeAsync()
@@ -22,7 +24,7 @@ namespace HandlenettAPI.Controllers
             try
             {
                 var dbService = new UserService(_config);
-                await dbService.AddUserIfNotExists(_graphClient);
+                await dbService.AddUserIfNotExists(_graphClient, _slackService);
             }
             catch (Exception ex)
             {

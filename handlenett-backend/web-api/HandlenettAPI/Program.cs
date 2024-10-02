@@ -6,6 +6,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.ExternalConnectors;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
+using System.Net.Http.Headers;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+builder.Services.AddHttpClient("SlackClient", client =>
+{
+    client.BaseAddress = new Uri("https://slack.com/api/");
+    client.DefaultRequestHeaders.Accept.Clear();
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+});
+builder.Services.AddScoped<SlackService>();
 
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

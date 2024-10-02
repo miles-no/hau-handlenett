@@ -14,8 +14,8 @@ namespace HandlenettAPI.Controllers
     public class UserController : BaseController
     {
 
-        public UserController(ILogger<UserController> logger, GraphServiceClient graphServiceClient, IConfiguration config)
-            : base(logger, graphServiceClient, config)
+        public UserController(ILogger<UserController> logger, GraphServiceClient graphServiceClient, IConfiguration config, SlackService slackService)
+            : base(logger, graphServiceClient, config, slackService)
         {
         }
 

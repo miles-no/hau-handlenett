@@ -15,5 +15,7 @@ namespace HandlenettAPI.Models
         //[DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public string Name { get; private set; }//=> FirstName + " " + LastName;
         public bool IsDeleted { get; set; }
+        [MaxLength(50)]
+        public string? SlackUserId { get; set; }
     }
 }

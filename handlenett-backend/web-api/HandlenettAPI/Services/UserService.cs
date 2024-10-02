@@ -2,6 +2,7 @@
 using Microsoft.Graph;
 using HandlenettAPI.Helpers;
 using HandlenettAPI.DTO;
+using Newtonsoft.Json.Linq;
 
 namespace HandlenettAPI.Services
 {
@@ -56,18 +57,36 @@ namespace HandlenettAPI.Services
             }
         }
 
-        public async Task AddUserIfNotExists(GraphServiceClient graphServiceClient)
+        public async Task AddUserIfNotExists(GraphServiceClient graphServiceClient, SlackService slackService)
         {
+            //Ad
             var myUser = await graphServiceClient.Me.Request().GetAsync();
-
             if (myUser == null)
             {
                 throw new Exception("Could not get Ad profile");
             }
 
+
+            //Slack
+            //TODO: fiks null handling på alt
+            //if (!string.IsNullOrEmpty(_config.GetValue<string>("SlackBotUserOAuthToken")))
+            //{
+            //    var usersList = await slackService.GetUsersListAsync(_config.GetValue<string>("SlackBotUserOAuthToken"));
+            //}
+
+            //må reinstallere app i slack pga nytt scope users:read
+            //var usersList = await slackService.GetUsersListAsync(_config.GetValue<string>("SlackBotUserOAuthToken"));
+            //linq filtrer på email --> get id
+
+            //scope users:profile:read (denne er installert på miles workspace nå), hardkodet til roger slack id
+            var slackUser = await slackService.GetUserImageFromIdAsync(_config.GetValue<string>("SlackBotUserOAuthToken"), "U06T83RHMFH");
+
+
+            //AzureSQL
             if (!CheckIfUserExists(new Guid(myUser.Id)))
             {
-                AddUser(myUser);
+                AddUser(myUser, slackUser?.Id);
+                //TODO: upload image to blob via AzureBlobStorageService
             }
         }
 
@@ -87,7 +106,7 @@ namespace HandlenettAPI.Services
             }
         }
 
-        private void AddUser(Microsoft.Graph.User user)
+        private void AddUser(Microsoft.Graph.User user, string? slackUserId)
         {
             using (var db = new AzureSQLContext(_config))
             {
@@ -96,6 +115,7 @@ namespace HandlenettAPI.Services
                     Id = new Guid(user.Id),
                     FirstName = user.GivenName,
                     LastName = user.Surname
+                    //TODO: SlackUserId = slackUserId //hardkodet til roger sin id nå
                 };
                 db.Users.Add(newUser);
                 db.SaveChanges();

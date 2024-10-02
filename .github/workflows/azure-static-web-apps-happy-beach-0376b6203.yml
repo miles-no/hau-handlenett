@@ -33,7 +33,7 @@ jobs:
           app_location: "handlenett-frontend/" # App source code path
           api_location: "handlenett-frontend/.output/server" # Api source code path - optional
           output_location: ".output/public" # Built app content directory - optional -- For most projects, the output_location is relative to the app_location. 
-          app_build_command: 'npx nuxi build --preset azure'
+          app_build_command: 'npx nuxi build --dotenv .env.production --preset azure'
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:

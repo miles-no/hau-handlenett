@@ -26,7 +26,17 @@ onMounted(async () => {
 
     loading.value = true
     useHttp('Item', 'GET').then(data => {
-        items.value = data;
+
+        const sortArray = (arr) => {
+            return arr.sort((a, b) => {
+                return a.name.localeCompare(b.name);
+            });
+        }
+
+        const isNotCompleted = data.filter(i => !i.isCompleted)
+        const isCompleted = data.filter(i => i.isCompleted)
+
+        items.value = [...sortArray(isNotCompleted), ...sortArray(isCompleted)];
     });
     loading.value = false
 

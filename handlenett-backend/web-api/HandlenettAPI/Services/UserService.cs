@@ -65,28 +65,22 @@ namespace HandlenettAPI.Services
             {
                 throw new Exception("Could not get Ad profile");
             }
+            var slackToken = _config.GetValue<string>("SlackBotUserOAuthToken");
+            if (string.IsNullOrEmpty(slackToken)) throw new Exception("Missing config");
 
-
-            //Slack
-            //TODO: fiks null handling på alt
-            //if (!string.IsNullOrEmpty(_config.GetValue<string>("SlackBotUserOAuthToken")))
-            //{
-            //    var usersList = await slackService.GetUsersListAsync(_config.GetValue<string>("SlackBotUserOAuthToken"));
-            //}
 
             //må reinstallere app i slack pga nytt scope users:read
-            //var usersList = await slackService.GetUsersListAsync(_config.GetValue<string>("SlackBotUserOAuthToken"));
+            //var usersList = await slackService.GetUsersListAsync(slackToken);
             //linq filtrer på email --> get id
 
             //scope users:profile:read (denne er installert på miles workspace nå), hardkodet til roger slack id
-            var slackUser = await slackService.GetUserImageFromIdAsync(_config.GetValue<string>("SlackBotUserOAuthToken"), "U06T83RHMFH");
-
+            var slackUser = await slackService.GetUserProfileFromIdAsync(slackToken, "U06T83RHMFH");
 
             //AzureSQL
             if (!CheckIfUserExists(new Guid(myUser.Id)))
             {
-                AddUser(myUser, slackUser?.Id);
-                //TODO: upload image to blob via AzureBlobStorageService
+                AddUser(myUser, slackUser.Id);
+                await slackService.CopyImageToAzureBlobStorage(slackToken, slackUser);
             }
         }
 
@@ -114,8 +108,8 @@ namespace HandlenettAPI.Services
                 {
                     Id = new Guid(user.Id),
                     FirstName = user.GivenName,
-                    LastName = user.Surname
-                    //TODO: SlackUserId = slackUserId //hardkodet til roger sin id nå
+                    LastName = user.Surname,
+                    SlackUserId = slackUserId
                 };
                 db.Users.Add(newUser);
                 db.SaveChanges();

@@ -1,4 +1,6 @@
-﻿using HandlenettAPI.Models;
+﻿using Azure.Storage.Blobs;
+using HandlenettAPI.Models;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -7,10 +9,12 @@ namespace HandlenettAPI.Services
     public class SlackService
     {
         private readonly HttpClient _httpClient;
+        private  readonly IConfiguration _config;
 
-        public SlackService(IHttpClientFactory httpClientFactory)
+        public SlackService(IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _httpClient = httpClientFactory.CreateClient("SlackClient");
+            _config = config;
         }
 
         public async Task<string> GetUsersListAsync(string oauthToken)
@@ -33,7 +37,7 @@ namespace HandlenettAPI.Services
             return userProfileJson;
         }
 
-        public async Task<SlackUser> GetUserImageFromIdAsync(string oauthToken, string userId)
+        public async Task<SlackUser> GetUserProfileFromIdAsync(string oauthToken, string userId)
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
             var userResponse = await _httpClient.GetAsync($"users.profile.get?user={userId}");
@@ -44,14 +48,12 @@ namespace HandlenettAPI.Services
             {
                 throw new Exception("Image not found");
             }
-            var slackUser = new SlackUser
+            return new SlackUser
             {
                 Id = userId,
-                Image = await DownloadImageAsync(userImageUrl)
+                ImageUrl = userImageUrl
             };
-
-            return slackUser; 
-        }
+            }
 
         public async Task<string> GetUserFromEmailAddressAsync(string oauthToken, string userId)
         {
@@ -60,12 +62,30 @@ namespace HandlenettAPI.Services
             return "asd";
         }
 
-        public async Task<byte[]> DownloadImageAsync(string imageUrl)
+        public async Task CopyImageToAzureBlobStorage(string oauthToken, SlackUser slackUser)
         {
-            using var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(imageUrl);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsByteArrayAsync();
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
+
+                using (HttpResponseMessage response = await _httpClient.GetAsync(slackUser.ImageUrl, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+
+                    using (Stream imageStream = await response.Content.ReadAsStreamAsync())
+                    {
+                        var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages");
+                        if (string.IsNullOrEmpty(containerName)) throw new Exception("Missing config");
+
+                        var blobService = new AzureBlobStorageService(containerName, _config);
+                        await blobService.UploadBlobAsync(slackUser.Id + ".jpg", imageStream);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
         }
 
         private string? ExtractImageUrl(string userProfileJson)

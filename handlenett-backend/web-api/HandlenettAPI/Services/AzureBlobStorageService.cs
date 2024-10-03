@@ -1,22 +1,37 @@
 ﻿namespace HandlenettAPI.Services
 {
     using Azure.Storage.Blobs;
+    using Azure.Storage.Blobs.Models;
+
     public class AzureBlobStorageService
     {
-        public async Task UploadImageToBlobAsync(byte[] imageBytes, string blobName, string connectionString, string containerName)
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly IConfiguration _config;
+        private readonly string _containerName;
+
+        public AzureBlobStorageService(string containerName, IConfiguration config)
         {
-            // Inject Service client?, construct containerClient from param containerName
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            _config = config;
+            _containerName = containerName;
+            var asd = _config.GetConnectionString("AzureStorageUsingAccessKey");
+            _blobServiceClient = new BlobServiceClient(_config.GetConnectionString("AzureStorageUsingAccessKey"));
+        }
 
-            // Create the container if it doesn't exist, don't want this?
-            //await blobContainerClient.CreateIfNotExistsAsync();
-
-            // Get a reference to the blob, is this correct?
+        // Upload a new blob
+        public async Task UploadBlobAsync(string blobName, Stream content)
+        {
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
+            await blobClient.UploadAsync(content, overwrite: true);
+        }
 
-            using var stream = new MemoryStream(imageBytes);
-            await blobClient.UploadAsync(stream, overwrite: true);
+        // Get existing blob
+        public async Task<Stream> GetBlobAsync(string blobName)
+        {
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var blobClient = blobContainerClient.GetBlobClient(blobName);
+            BlobDownloadInfo download = await blobClient.DownloadAsync();
+            return download.Content;
         }
 
     }

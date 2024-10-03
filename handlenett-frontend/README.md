@@ -8,6 +8,11 @@ Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introdu
 Copy .env.example and rename it .env
 As of this writing, the environment variables should be the same.
 
+## CI / CD
+
+Github actions build and published this to an Azure Static Website.
+
+
 ## Setup
 
 Make sure to install the dependencies:

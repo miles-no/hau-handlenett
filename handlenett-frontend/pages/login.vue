@@ -8,7 +8,7 @@
                 <h1>Login</h1>
             </div>
             <div class="button">
-                <button class="btn" @click="loginUser">Login with Microsoft 365</button>
+                <button class="btn btn-primary" @click="loginUser">Login with Microsoft 365</button>
             </div>
         </div>
     </ClientOnly>

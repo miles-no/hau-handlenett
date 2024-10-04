@@ -3,8 +3,12 @@
         <label :class="{ 'complete': status }">
             <input type="checkbox" :checked="status" @change="update"> {{ props.element?.name }}
         </label>
-        <button v-if="isElementDeletable" @click="deleteeleement">X
-        </button>
+        <div class="button-group">
+            <button v-if="false" class="btn primary" @click="editeleement">✏️
+            </button>
+            <button v-if="isElementDeletable" class="btn warning" @click="deleteeleement">🗑️
+            </button>
+        </div>
     </div>
 </template>
 <script setup>
@@ -16,6 +20,7 @@ const status = ref(false)
 const props = defineProps({
     element: { type: Object },
     isElementDeletable: { type: Boolean, default: false },
+    isElementEditable: { type: Boolean, default: false },
 })
 
 onMounted(() => {
@@ -39,6 +44,11 @@ const deleteeleement = () => {
     border-bottom: 1px solid #ccc;
     font-size: 1.5rem;
     font-weight: bold;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
 }
 
 .complete {

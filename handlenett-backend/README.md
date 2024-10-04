@@ -9,6 +9,7 @@ This is the ASP.NET Core Web API backend for the Handlenett shopping list applic
   - [Windows (Visual Studio or Visual Studio Code)](#windows-visual-studio-or-visual-studio-code-setup)
   - [macOS](#macos-setup)
   - [Environment Variables](#environment-variables)
+  - [Swagger Documentation](#swagger-documentation)
 - [Production Setup](#production-setup)
   - [Build and Deployment Workflow](#build-and-deployment-workflow)
 - [Azure Resources](#azure-resources)
@@ -67,6 +68,48 @@ Before running or building the project, ensure the following software is install
 ### Environment Variables
 
 Secrets and environment variables are automatically managed through Azure Key Vault (`handlenett-prod-kv`). There's no need to manually set these values, as the application will access them securely during runtime.
+
+
+### Swagger Documentation
+
+The Handlenett API includes Swagger documentation with extended functionality for better API exploration and testing. Swagger allows you to easily view the API endpoints, input parameters, and responses. It also supports authentication using bearer tokens for secure API requests.
+
+#### Retrieving a JWT for Local Development
+
+To interact with the secured API endpoints, you'll need a valid JWT. Here's how to retrieve it:
+
+1. Open the following URL in your browser:
+   
+   ```
+   https://login.microsoftonline.com/7534ab3e-6d52-4213-8493-1d674b529724/oauth2/v2.0/authorize?client_id=6409e25f-f9b7-4b70-a84c-6c077440d740&redirect_uri=https%3A%2F%2Foidcdebugger.com%2Fdebug&scope=api%3A%2F%2F6409e25f-f9b7-4b70-a84c-6c077440d740%2Faccess_as_user%20User.Read&response_type=token&response_mode=form_post&nonce=w6esugjg4wf
+   ```
+
+2. This URL will take you to the Microsoft identity platform's login page. Sign in with your Azure account that has the necessary permissions.
+
+3. After successful login, you’ll be redirected to [OIDC Debugger](https://oidcdebugger.com), where you can copy the `access_token` provided in the response.
+
+4. Once you have the token, go to the Swagger UI for the API (running locally at `http://localhost:32769/swagger`).
+
+5. Click the **Authorize** button in the Swagger UI and paste the token in the following format:
+
+   ```
+   Bearer <your_token>
+   ```
+
+6. Now, you can interact with protected API endpoints directly from Swagger.
+
+#### Accessing Swagger UI
+
+1. After starting the API locally (on either Windows or macOS), you can access the Swagger UI at:
+
+   ```
+   http://localhost:32769/swagger
+   ```
+
+2. The Swagger UI will list all the available endpoints and allow you to interact with the API directly from the browser.
+
+---
+
 
 ## Production Setup
 

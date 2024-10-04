@@ -17,5 +17,7 @@ namespace HandlenettAPI.Models
         public bool IsDeleted { get; set; }
         [MaxLength(50)]
         public string? SlackUserId { get; set; }
+        [MaxLength(2048)]
+        public string? ImageUrl { get; set; }
     }
 }

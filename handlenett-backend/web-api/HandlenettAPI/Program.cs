@@ -58,6 +58,11 @@ builder.Services.AddHttpClient("SlackClient", client =>
 });
 builder.Services.AddScoped<SlackService>();
 
+builder.Configuration.AddAzureKeyVault(
+        new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
+        new DefaultAzureCredential());
+//DefaultAzureCredential() is handled by enabling system assigned identity on container app and creating access policy in kv
+
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
@@ -68,10 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //TODO: add AzureSQLContext singleton
 //builder.Services.AddSingleton(graphClient);
 
-builder.Configuration.AddAzureKeyVault(
-        new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
-        new DefaultAzureCredential());
-//DefaultAzureCredential() is handled by enabling system assigned identity on container app and creating access policy in kv
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

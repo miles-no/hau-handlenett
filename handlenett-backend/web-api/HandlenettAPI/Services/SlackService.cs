@@ -93,5 +93,40 @@ namespace HandlenettAPI.Services
             var userProfile = JsonSerializer.Deserialize<JsonElement>(userProfileJson);
             return userProfile.GetProperty("profile").GetProperty("image_192").GetString(); // Adjust property based on size needed
         }
+
+        public async Task<SlackUser?> GetUserIdByEmailAsync(string oauthToken, string email)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
+
+            var response = await _httpClient.GetAsync("users.list");
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+
+            using (JsonDocument document = JsonDocument.Parse(content))
+            {
+                var members = document.RootElement.GetProperty("members").EnumerateArray();
+
+                var user = members
+                    .FirstOrDefault(m =>
+                        m.GetProperty("profile").TryGetProperty("email", out JsonElement emailElement)
+                        && emailElement.GetString() == email);
+
+                if (user.ValueKind != JsonValueKind.Undefined)
+                {
+                    string? userId = user.GetProperty("id").GetString();
+                    string? imageUrl = user.GetProperty("profile").GetProperty("image_192").GetString();
+
+                    if (userId != null)
+                    {
+                        return new SlackUser
+                        {
+                            Id = userId,
+                            ImageUrl = imageUrl
+                        };
+                    }
+                }
+                return null;
+            }
+        }
     }
 }

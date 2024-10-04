@@ -1,7 +1,7 @@
 <template>
     <form @submit.prevent="update">
-        <input type="text" placeholder="Hva mer?" v-model="item">
-        <button @click="update">+</button>
+        <input type="text" placeholder="Trenger vi noe mer?" v-model="item">
+        <button class="btn" @click="update">🛒</button>
     </form>
 </template>
 <script setup>

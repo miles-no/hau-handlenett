@@ -6,7 +6,8 @@
     <div>
         <div style="margin-bottom: 2rem;">
             <Item v-for="i in items" :key="i.id" @changed="updatedItem" @delete="deleteItem"
-                :isElementDeletable="currentUser === i.createdBy" :element="i" />
+                :isElementDeletable="currentUser === i.createdBy" :isElementEditable="currentUser === i.createdBy"
+                :element="i" />
         </div>
         <NewItem @changed="newItem"></NewItem>
     </div>

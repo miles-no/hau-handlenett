@@ -2,5 +2,6 @@
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
+  css: ["~/assets/styles.css"],
   plugins: [{ src: "~/plugins/msal.js", mode: "client" }],
 });

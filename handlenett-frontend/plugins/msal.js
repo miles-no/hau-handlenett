@@ -24,7 +24,7 @@ export default defineNuxtPlugin(async () => {
       return loginResponse;
     } catch (err) {
       console.log("Login error", err);
-      alert("Login error");
+      alert("Login error", err);
     }
   };
 

@@ -17,68 +17,26 @@ namespace HandlenettAPI.Services
             _config = config;
         }
 
-        public async Task<string> GetUsersListAsync(string oauthToken)
-        {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
-            var response = await _httpClient.GetAsync("users.list");
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-
-            return content;
-        }
-
-        public async Task<string> GetUserFromIdAsync(string oauthToken, string userId)
-        {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
-            var userResponse = await _httpClient.GetAsync($"users.profile.get?user={userId}");
-            userResponse.EnsureSuccessStatusCode();
-            var userProfileJson = await userResponse.Content.ReadAsStringAsync();
-
-            return userProfileJson;
-        }
-
-        public async Task<SlackUser> GetUserProfileFromIdAsync(string oauthToken, string userId)
-        {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
-            var userResponse = await _httpClient.GetAsync($"users.profile.get?user={userId}");
-            userResponse.EnsureSuccessStatusCode();
-            var userProfileJson = await userResponse.Content.ReadAsStringAsync();
-            var userImageUrl = ExtractImageUrl(userProfileJson);
-            if (userImageUrl == null)
-            {
-                throw new Exception("Image not found");
-            }
-            return new SlackUser
-            {
-                Id = userId,
-                ImageUrl = userImageUrl
-            };
-            }
-
-        public async Task<string> GetUserFromEmailAddressAsync(string oauthToken, string userId)
-        {
-            var user = await GetUsersListAsync(oauthToken);
-            //TODO: list --> linq --> GetUserFromIdAsync --> ExtractImageUrl --> DownloadImageAsync
-            return "asd";
-        }
-
-        public async Task CopyImageToAzureBlobStorage(string oauthToken, SlackUser slackUser)
+        public async Task<string> CopyImageToAzureBlobStorage(string oauthToken, SlackUser slackUser)
         {
             try
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
 
-                using (HttpResponseMessage response = await _httpClient.GetAsync(slackUser.ImageUrl, HttpCompletionOption.ResponseHeadersRead))
+                using (HttpResponseMessage response = await _httpClient.GetAsync(slackUser.ImageUrlSlack, HttpCompletionOption.ResponseHeadersRead))
                 {
                     response.EnsureSuccessStatusCode();
 
+                    //TODO: Mer ryddig å ha get function her og upload i azureService, men hvordan håndtere stream da?
                     using (Stream imageStream = await response.Content.ReadAsStreamAsync())
                     {
                         var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages");
+                        var accountName = _config.GetValue<string>("AzureStorage:AccountName");
                         if (string.IsNullOrEmpty(containerName)) throw new Exception("Missing config");
 
                         var blobService = new AzureBlobStorageService(containerName, _config);
                         await blobService.UploadBlobAsync(slackUser.Id + ".jpg", imageStream);
+                        return $"https://{accountName}.blob.core.windows.net/{containerName}/{slackUser.Id}.jpg";
                     }
                 }
             }
@@ -88,13 +46,7 @@ namespace HandlenettAPI.Services
             }
         }
 
-        private string? ExtractImageUrl(string userProfileJson)
-        {
-            var userProfile = JsonSerializer.Deserialize<JsonElement>(userProfileJson);
-            return userProfile.GetProperty("profile").GetProperty("image_192").GetString(); // Adjust property based on size needed
-        }
-
-        public async Task<SlackUser?> GetUserIdByEmailAsync(string oauthToken, string email)
+        public async Task<SlackUser?> GetUserByEmailAsync(string oauthToken, string email)
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
 
@@ -121,7 +73,7 @@ namespace HandlenettAPI.Services
                         return new SlackUser
                         {
                             Id = userId,
-                            ImageUrl = imageUrl
+                            ImageUrlSlack = imageUrl
                         };
                     }
                 }

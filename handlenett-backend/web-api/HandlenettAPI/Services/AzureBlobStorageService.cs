@@ -1,7 +1,9 @@
 ﻿namespace HandlenettAPI.Services
 {
+    using Azure.Storage;
     using Azure.Storage.Blobs;
     using Azure.Storage.Blobs.Models;
+    using Azure.Storage.Sas;
 
     public class AzureBlobStorageService
     {
@@ -17,7 +19,6 @@
             _blobServiceClient = new BlobServiceClient(_config.GetConnectionString("AzureStorageUsingAccessKey"));
         }
 
-        // Upload a new blob
         public async Task UploadBlobAsync(string blobName, Stream content)
         {
             var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
@@ -32,6 +33,26 @@
             var blobClient = blobContainerClient.GetBlobClient(blobName);
             BlobDownloadInfo download = await blobClient.DownloadAsync();
             return download.Content;
+        }
+
+        public string GenerateContainerSasToken()
+        {
+            var blobServiceClient = new BlobServiceClient(_config.GetConnectionString("AzureStorageUsingAccessKey"));
+
+            var sasBuilder = new BlobSasBuilder
+            {
+                BlobContainerName = _containerName,
+                Resource = "c", // container-level SAS
+                ExpiresOn = DateTimeOffset.UtcNow.AddHours(48)
+            };
+
+            sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
+
+            var sasToken = sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(
+                blobServiceClient.AccountName,
+                _config.GetValue<string>("AzureStorage:AccountKey"))).ToString();
+
+            return sasToken;
         }
 
     }

@@ -16,19 +16,29 @@ namespace HandlenettAPI.Services
             _config = config;
         }
 
-
         public List<UserDTO> GetUsers()
         {
             try
             {
+                var SASToken = GetAzureBlobStorageUserImageSASToken();
+
                 using (var db = new AzureSQLContext(_config))
                 {
                     var users = db.Users
                         .Where(u => u.IsDeleted == false)
                         .OrderBy(u => u.Name)
                         .ToList();
+                    if (users == null) return [];
 
-                    return users == null ? [] : users.ConvertToList<UserDTO>();
+                    var usersDTO = new List<UserDTO>();
+
+                    foreach (var user in users)
+                    {
+                        var userDTO = ConvertUserToUserDTO(user, SASToken);
+                        usersDTO.Add(userDTO);
+                    }
+
+                    return usersDTO;
                 }
             }
             catch (SqlException ex)
@@ -36,6 +46,21 @@ namespace HandlenettAPI.Services
                 Console.WriteLine(ex.Message);
                 throw;
             }
+        }
+
+        private string GetAzureBlobStorageUserImageSASToken()
+        {
+            var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages");
+            if (string.IsNullOrEmpty(containerName)) throw new Exception("Missing config");
+            var azureService = new AzureBlobStorageService(containerName, _config);
+            return azureService.GenerateContainerSasToken();
+        }
+
+        private UserDTO ConvertUserToUserDTO(Models.User user, string SASToken)
+        {
+            var userDTO = user.ConvertTo<UserDTO>();
+            userDTO.ImageUrl = $"{user.ImageUrl}?{SASToken}";
+            return userDTO;
         }
 
         public UserDTO GetUser(Guid id)
@@ -48,7 +73,10 @@ namespace HandlenettAPI.Services
                         .Where(u => u.Id == id)
                         .FirstOrDefault();
 
-                    return user == null ? throw new InvalidOperationException("User not found") : user.ConvertTo<UserDTO>();
+                    if (user == null) throw new InvalidOperationException("User not found");
+
+                    var SASToken = GetAzureBlobStorageUserImageSASToken();
+                    return ConvertUserToUserDTO(user, SASToken);
                 }
             }
             catch (SqlException ex)
@@ -69,23 +97,21 @@ namespace HandlenettAPI.Services
             var slackToken = _config.GetValue<string>("SlackBotUserOAuthToken");
             if (string.IsNullOrEmpty(slackToken)) throw new Exception("Missing config");
 
-            var SQLUser = GetMyUser(new Guid(ADUser.Id));
+            var SQLUser = GetUserWithDetails(new Guid(ADUser.Id));
 
             //AzureSQL og slack
             if (SQLUser == null)
             {
-                //Denne funker bare når admin har godkjent nytt scope for slack app
-                var slackUser = await slackService.GetUserIdByEmailAsync(slackToken, ADUser.Mail);
+                var slackUser = await slackService.GetUserByEmailAsync(slackToken, ADUser.Mail);
                 if (slackUser != null)
                 {
-                    //TODO: denne må returnere url SAS token. Når det passes til frontend må det genereres SAS token som sendes med url
-                    await slackService.CopyImageToAzureBlobStorage(slackToken, slackUser);
+                    slackUser.ImageUrlBlobStorage = await slackService.CopyImageToAzureBlobStorage(slackToken, slackUser);
                 }
                 AddUser(ADUser, slackUser);
             }
         }
 
-        private Models.User? GetMyUser(Guid userId)
+        private Models.User? GetUserWithDetails(Guid userId)
         {
             using (var db = new AzureSQLContext(_config))
             {
@@ -107,7 +133,7 @@ namespace HandlenettAPI.Services
                     FirstName = user.GivenName,
                     LastName = user.Surname,
                     SlackUserId = slackUser?.Id,
-                    ImageUrl = slackUser?.ImageUrl
+                    ImageUrl = slackUser?.ImageUrlBlobStorage,
                 };
                 db.Users.Add(newUser);
                 db.SaveChanges();

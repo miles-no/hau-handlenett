@@ -27,7 +27,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: handlenett-backend/functions/YourFunctionProjectPath  # Update to the path of your function project
+          context: handlenett-backend/serverless/CosmosDBChangeFeed
           push: true
           tags: |
             ${{ secrets.AZURE_ACR_REGISTRY_URL }}/handlenett-function-cosmosdb-changefeed:latest

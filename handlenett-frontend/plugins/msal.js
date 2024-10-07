@@ -9,7 +9,6 @@ export default defineNuxtPlugin(async () => {
     },
   };
   const msal = new PublicClientApplication(config);
-  console.info("MSAL initialized", config);
   try {
     await msal.initialize();
   } catch (e) {
@@ -17,16 +16,15 @@ export default defineNuxtPlugin(async () => {
   }
 
   const login = async () => {
-    console.info("Logging in", import.meta.env.VITE_SCOPE);
     let loginRequest = {
       scopes: [import.meta.env.VITE_SCOPE],
     };
     try {
-      console.info("Login request", loginRequest);
       let loginResponse = await msal.loginPopup(loginRequest);
       return loginResponse;
     } catch (err) {
       console.log("Login error", err);
+      alert("Login error", err);
     }
   };
 

@@ -17,5 +17,4 @@
 /handlenett-backend/web-api/HandlenettAPI/Properties/serviceDependencies.handlenett-api.json.user
 /handlenett-backend/web-api/HandlenettAPI/Services/SlackProfile.json
 /handlenett-backend/web-api/HandlenettAPI/Services/usersList.json
-/handlenett-backend/serverless/CosmosDBChangeFeed/Properties
-/handlenett-backend/serverless/CosmosDBChangeFeed/host.json
+/handlenett-backend/serverless/HttpTriggerTest/Properties/serviceDependencies.local.json

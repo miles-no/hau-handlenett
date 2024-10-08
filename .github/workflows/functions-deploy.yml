@@ -30,11 +30,9 @@ jobs:
               "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
               "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
             }
-      - name: Change to Function App directory
-        run: cd handlenett-backend/serverless/HttpTriggerTest
         
       - name: Build the function app
-        run: dotnet publish -c Release -o ./publish
+        run: dotnet publish handlenett-backend/serverless/HttpTriggerTest -c Release -o ./publish
 
       - name: Create deployment package
         run: zip -r publish.zip ./publish

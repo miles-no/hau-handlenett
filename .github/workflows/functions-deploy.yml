@@ -31,8 +31,11 @@ jobs:
               "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
             }
       
-      - name: Build and deploy the function app
+      - name: Build the function app
         run: dotnet publish handlenett-backend/serverless/HttpTriggerTest -c Release -o ./publish
+
+      - name: List published files
+        run: dir ./publish
 
       - name: Deploy to Azure Function App using GitHub Action
         uses: Azure/functions-action@v1

@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'handlenett-backend/serverless/CosmosDBChangeFeed/**'
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -47,4 +48,4 @@ jobs:
       - name: Update Azure Function App with new image
         run: |
           az functionapp config container set --name handlenett-notifications-fa --resource-group handlenett-rg \
-            --docker-custom-image-name ${{ secrets.AZURE_ACR_REGISTRY_URL }}/handlenett-function:${{ github.sha }}
+            --image ${{ secrets.AZURE_ACR_REGISTRY_URL }}/handlenett-function-cosmosdb-changefeed:${{ github.sha }}

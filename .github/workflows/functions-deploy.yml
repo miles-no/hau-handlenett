@@ -30,19 +30,12 @@ jobs:
               "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
               "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
             }
-        
-      - name: Build the function app
+      
+      - name: Build and deploy the function app
         run: dotnet publish handlenett-backend/serverless/HttpTriggerTest -c Release -o ./publish
 
-      - name: Create deployment package
-        run: zip -r publish.zip ./publish
-
-      - name: Deploy to Azure Function App using Azure CLI
-        run: |
-          az functionapp deployment source config-zip \
-            --resource-group handlenett-rg \
-            --name handlenett-notifications-fa \
-            --src ./publish.zip
-
-      - name: Clean up published artifacts
-        run: rm -rf ./publish ./publish.zip
+      - name: Deploy to Azure Function App using GitHub Action
+        uses: Azure/functions-action@v1
+        with:
+          app-name: 'handlenett-notifications-fa'
+          package: './publish'

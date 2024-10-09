@@ -5,11 +5,11 @@ using Microsoft.Extensions.Logging;
 
 namespace HttpTriggerTest
 {
-    public class Function1
+    public class Function1Renamed
     {
-        private readonly ILogger<Function1> _logger;
+        private readonly ILogger<Function1Renamed> _logger;
 
-        public Function1(ILogger<Function1> logger)
+        public Function1Renamed(ILogger<Function1Renamed> logger)
         {
             _logger = logger;
         }

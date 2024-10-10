@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace HttpTriggerTest
+namespace HandlenettNotifications
 {
     public class Function1Renamed
     {
@@ -14,7 +14,7 @@ namespace HttpTriggerTest
             _logger = logger;
         }
 
-        [Function("Function1")]
+        [Function("OnlyChangedAttribute")]
         public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");

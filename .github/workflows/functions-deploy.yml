@@ -3,7 +3,7 @@ name: Deploy Azure Function
 on:
   push:
     paths:
-      - 'handlenett-backend/serverless/HandlenettNotifications/**'
+      - 'handlenett-backend/serverless/functions/**'
     branches:
       - main
 
@@ -32,7 +32,7 @@ jobs:
             }
       
       - name: Build the function app
-        run: dotnet publish handlenett-backend/serverless/HandlenettNotifications -c Release -o ./publish
+        run: dotnet publish handlenett-backend/serverless/functions -c Release -o ./publish
 
       - name: List published files
         run: dir ./publish

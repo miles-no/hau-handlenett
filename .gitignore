@@ -18,3 +18,5 @@
 /handlenett-backend/web-api/HandlenettAPI/Services/SlackProfile.json
 /handlenett-backend/web-api/HandlenettAPI/Services/usersList.json
 /handlenett-backend/serverless/HttpTriggerTest/Properties/serviceDependencies.local.json
+/handlenett-backend/serverless/functions/Properties/ServiceDependencies/local
+/handlenett-backend/serverless/functions/Properties/serviceDependencies.local.json

@@ -23,10 +23,21 @@ namespace HandlenettNotifications
             CreateLeaseContainerIfNotExists = true)] IReadOnlyList<MyDocument> input)
         {
 
-            if (input != null && input.Count > 0)
+            try
             {
-                _logger.LogInformation("Documents modified: " + input.Count);
-                _logger.LogInformation("First document Id: " + input[0].id);
+                if (input != null && input.Count > 0)
+                {
+                    _logger.LogInformation("Documents modified: " + input.Count);
+                    _logger.LogInformation("First document Id: " + input[0].id);
+                }
+                else
+                {
+                    _logger.LogInformation("Input was null or empty.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while processing the Cosmos DB trigger.");
             }
         }
     }

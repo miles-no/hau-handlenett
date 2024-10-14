@@ -1,21 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Logging;
 
 namespace HandlenettNotifications
 {
     public class ItemsChangeFeed
     {
-        private readonly ILogger _logger;
+        private IQueueClient? queueClient;
+        private readonly ILogger<ItemsChangeFeed> _logger;
 
-        public ItemsChangeFeed(ILoggerFactory loggerFactory)
+        public ItemsChangeFeed(ILogger<ItemsChangeFeed> logger)
         {
-            _logger = loggerFactory.CreateLogger<ItemsChangeFeed>();
+            _logger = logger;
         }
 
+        //only works sometimes, likely because of low throughput on free cost tier 
         [Function("ItemsChangeFeed")]
-        public void Run([CosmosDBTrigger(
+        public async Task Run([CosmosDBTrigger(
             databaseName: "Handlenett",
             containerName: "ShoppingListItems",
             Connection = "ConnectionStrings--AzureFunctionsCosmosDB",
@@ -29,6 +33,22 @@ namespace HandlenettNotifications
                 {
                     _logger.LogInformation("Documents modified: " + input.Count);
                     _logger.LogInformation("First document Id: " + input[0].id);
+
+
+                    queueClient = new QueueClient(
+                       Environment.GetEnvironmentVariable("ConnectionStrings--ServiceBus"),
+                       "cosmosdb-updates");
+
+                    foreach (var document in input)
+                    {
+                        var messageBody = $"Document Id: {document.id} changed";
+                        var message = new Message(Encoding.UTF8.GetBytes(messageBody));
+
+                        await queueClient.SendAsync(message);
+                        _logger.LogInformation($"Message sent to queue: {messageBody}");
+                    }
+
+                    await queueClient.CloseAsync();
                 }
                 else
                 {

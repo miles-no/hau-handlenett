@@ -48,7 +48,7 @@ builder.Services.AddCors(options =>
         builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().WithOrigins("http://localhost:3000", "http://localhost:3000");
     });
 });
-
+builder.Services.AddHttpClient<WeatherService>();
 
 builder.Services.AddHttpClient("SlackClient", client =>
 {

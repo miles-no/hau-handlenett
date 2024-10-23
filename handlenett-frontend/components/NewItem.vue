@@ -5,7 +5,7 @@
     </form>
 </template>
 <script setup>
-import { ref, defineEmits } from 'vue'
+import { ref } from 'vue'
 const item = ref('')
 const emit = defineEmits(['changed'])
 

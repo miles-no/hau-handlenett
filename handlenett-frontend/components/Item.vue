@@ -4,6 +4,7 @@
             <label :class="{ 'complete': status }">
                 <input type="checkbox" :checked="status" @change="update"> {{ props.element?.name }}
             </label>
+            <span @click="lmfgi">❔</span>
             <div class="gi-creator">📝{{ createdBy }}</div>
         </div>
         <div class="button-group">
@@ -29,6 +30,10 @@ const props = defineProps({
 onMounted(() => {
     status.value = props.element.isCompleted
 })
+
+const lmfgi = () => {
+    window.open(`https://www.google.com/search?q=bunnpris ${props.element.name}&udm=2`, '_blank')
+}
 
 const update = () => {
     status.value = !status.value;
@@ -57,7 +62,7 @@ const createdBy = computed(() => {
     font-weight: bold;
 }
 
-.gi-creator{
+.gi-creator {
     font-size: 0.8rem;
     font-weight: 100;
     padding-left: 1rem;

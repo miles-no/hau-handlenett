@@ -64,7 +64,7 @@ const newItem = (newItem) => {
 }
 
 const deleteItem = (deleteItem) => {
-    useHttp(`Item/${deleteItem.id}`, 'DELETE').then(data => {
+    useHttp(`Item/${deleteItem.id}`, 'DELETE').then(() => {
         let i = items.value.find(i => i.id === deleteItem.id)
         const idx = items.value.indexOf(i)
         items.value.splice(idx, 1)

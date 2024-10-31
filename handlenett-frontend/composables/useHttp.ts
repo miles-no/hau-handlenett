@@ -14,9 +14,18 @@ export default async function (url: string, method: string, data = {}) {
       mode: "cors",
       body: !!data && method != "GET" ? JSON.stringify(data) : null,
     });
-    return response.json();
+
+    const responseText = await response.text();
+    try {
+      const responseJson = JSON.parse(responseText);
+      return responseJson;
+    } catch (e) {
+      // return without parsing.
+      // might be empty
+      return responseText;
+    }
   } catch (error) {
-    console.info(error);
+    console.error("useHttp catch error", error);
     return Promise.reject(error);
   }
 }

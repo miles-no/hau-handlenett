@@ -4,6 +4,7 @@ using HandlenettAPI.Helpers;
 using HandlenettAPI.DTO;
 using Newtonsoft.Json.Linq;
 using HandlenettAPI.Models;
+using System.Configuration;
 
 namespace HandlenettAPI.Services
 {
@@ -50,8 +51,7 @@ namespace HandlenettAPI.Services
 
         private string GetAzureBlobStorageUserImageSASToken()
         {
-            var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages");
-            if (string.IsNullOrEmpty(containerName)) throw new Exception("Missing config");
+            var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages") ?? throw new ConfigurationErrorsException("Missing storage config");
             var azureService = new AzureBlobStorageService(containerName, _config);
             return azureService.GenerateContainerSasToken();
         }
@@ -94,8 +94,7 @@ namespace HandlenettAPI.Services
             {
                 throw new Exception("Could not get Ad profile");
             }
-            var slackToken = _config.GetValue<string>("SlackBotUserOAuthToken");
-            if (string.IsNullOrEmpty(slackToken)) throw new Exception("Missing config");
+            var slackToken = _config.GetValue<string>("SlackBotUserOAuthToken") ?? throw new Exception("Missing config");
 
             var SQLUser = GetUserWithDetails(new Guid(ADUser.Id));
 

@@ -2,6 +2,7 @@
 using HandlenettAPI.Models;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
+using System.Configuration;
 using System.Text.Json;
 
 namespace HandlenettAPI.Services
@@ -15,7 +16,9 @@ namespace HandlenettAPI.Services
         {
             _httpClient = httpClient;
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "Miles Haugesund Handlenett/1.0 (roger.torkelsen@miles.no)");
-            _redis = ConnectionMultiplexer.Connect(config.GetConnectionString("AzureRedisCache"));
+            var redisConnString = config.GetConnectionString("AzureRedisCache") ?? throw new ConfigurationErrorsException("Missing redis config");
+            _redis = ConnectionMultiplexer.Connect(redisConnString);
+            
         }
 
         public async Task<Weather> GetWeatherByCoordinatesAsync(double latitude, double longitude)

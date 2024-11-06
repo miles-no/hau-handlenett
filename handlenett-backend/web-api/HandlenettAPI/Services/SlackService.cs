@@ -1,5 +1,6 @@
 ﻿using Azure.Storage.Blobs;
 using HandlenettAPI.Models;
+using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -32,7 +33,7 @@ namespace HandlenettAPI.Services
                     {
                         var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages");
                         var accountName = _config.GetValue<string>("AzureStorage:AccountName");
-                        if (string.IsNullOrEmpty(containerName)) throw new Exception("Missing config");
+                        if (string.IsNullOrEmpty(containerName) || string.IsNullOrEmpty(accountName)) throw new ConfigurationErrorsException("Missing storage config");
 
                         var blobService = new AzureBlobStorageService(containerName, _config);
                         await blobService.UploadBlobAsync(slackUser.Id + ".jpg", imageStream);

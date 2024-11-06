@@ -4,12 +4,16 @@
         <div class="loader"></div>
     </div>
     <div v-else>
+        <NewItem @changed="newItem" @typing="typing"></NewItem>
+        <div v-if="itemsContainingSequence.length > 0">
+            Vi har allerede disse tilgjengelig for valg: {{ itemsContainingSequence }}
+        </div>
+
         <div style="margin-bottom: 2rem;">
             <Item v-for="i in items" :key="i.id" @changed="updatedItem" @delete="deleteItem"
                 :isElementDeletable="currentUser === i.createdBy" :isElementEditable="currentUser === i.createdBy"
                 :element="i" />
         </div>
-        <NewItem @changed="newItem"></NewItem>
     </div>
     <!-- <pre>
         {{ items }}
@@ -22,6 +26,7 @@ const { $getAccounts } = useNuxtApp();
 const items = ref([])
 const loading = ref(true)
 const currentUser = ref("")
+const itemsContainingSequence = ref([])
 
 onMounted(async () => {
 
@@ -53,7 +58,13 @@ const updatedItem = (updatedItem) => {
         items.value[idx] = data;
     });
 }
-
+const typing = (item) => {
+    if (item === '') {
+        itemsContainingSequence.value = []
+        return
+    }
+    itemsContainingSequence.value = items.value.filter(i => i.name.toLowerCase().includes(item.toLowerCase())).map(i => i.name)
+}
 const newItem = (newItem) => {
     if (newItem.name === '') return
 
@@ -64,7 +75,7 @@ const newItem = (newItem) => {
 }
 
 const deleteItem = (deleteItem) => {
-    useHttp(`Item/${deleteItem.id}`, 'DELETE').then(data => {
+    useHttp(`Item/${deleteItem.id}`, 'DELETE').then(() => {
         let i = items.value.find(i => i.id === deleteItem.id)
         const idx = items.value.indexOf(i)
         items.value.splice(idx, 1)

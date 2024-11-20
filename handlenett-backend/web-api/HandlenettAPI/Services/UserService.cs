@@ -4,7 +4,6 @@ using HandlenettAPI.Helpers;
 using HandlenettAPI.DTO;
 using Newtonsoft.Json.Linq;
 using HandlenettAPI.Models;
-using System.Configuration;
 
 namespace HandlenettAPI.Services
 {
@@ -51,7 +50,7 @@ namespace HandlenettAPI.Services
 
         private string GetAzureBlobStorageUserImageSASToken()
         {
-            var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages") ?? throw new ConfigurationErrorsException("Missing storage config");
+            var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages") ?? throw new InvalidOperationException("Missing storage config");
             var azureService = new AzureBlobStorageService(containerName, _config);
             return azureService.GenerateContainerSasToken();
         }

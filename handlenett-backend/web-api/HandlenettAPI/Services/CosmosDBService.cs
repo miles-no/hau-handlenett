@@ -7,7 +7,7 @@ using HandlenettAPI.DTO;
 
 namespace HandlenettAPI.Services
 {
-    public class CosmosDBService//<T> where T : IBase //Lag generisk, støtte for andre enn Item struktur, basert på containerName?
+    public class CosmosDBService : ICosmosDBService //<T> where T : IBase //Lag generisk, støtte for andre enn Item struktur, basert på containerName?
     {
         private readonly Container _container;
 

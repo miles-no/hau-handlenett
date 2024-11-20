@@ -6,7 +6,8 @@ using HandlenettAPI.Models;
 using HandlenettAPI.Services;
 using Microsoft.Azure.Cosmos;
 using HandlenettAPI.DTO;
-using System.Configuration;
+using Microsoft.Extensions.Configuration;
+using HandlenettAPI.Interfaces;
 
 namespace HandlenettAPI.Controllers
 {
@@ -17,30 +18,12 @@ namespace HandlenettAPI.Controllers
     public class ItemController : ControllerBase
     {
         private readonly ILogger<ItemController> _logger;
-        private readonly IConfiguration _config;
-        private readonly CosmosDBService _cosmosDBService;
+        private readonly ICosmosDBService _cosmosDBService;
 
-        public ItemController(ILogger<ItemController> logger, IConfiguration config)
+        public ItemController(ILogger<ItemController> logger, ICosmosDBService cosmosDBService)
         {
-            try
-            {
-                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-                _config = config ?? throw new ArgumentNullException(nameof(config));
-
-                if (string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:DatabaseName"))
-                    || string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:ContainerName"))
-                    || string.IsNullOrEmpty(_config.GetValue<string>("AzureCosmosDBSettings:ConnectionString")))
-                {
-                    throw new ConfigurationErrorsException("Missing CosmosDB config values");
-                }
-
-                _cosmosDBService = new CosmosDBService(new CosmosClient(_config.GetValue<string>("AzureCosmosDBSettings:ConnectionString")), _config.GetValue<string>("AzureCosmosDBSettings:DatabaseName"), _config.GetValue<string>("AzureCosmosDBSettings:ContainerName"));
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed in constructor");
-                throw new Exception("Something went wrong");
-            }
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _cosmosDBService = cosmosDBService ?? throw new ArgumentNullException(nameof(cosmosDBService));
         }
 
         [HttpGet(Name = "GetItems")]

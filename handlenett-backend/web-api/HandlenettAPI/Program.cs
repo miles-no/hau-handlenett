@@ -1,7 +1,11 @@
 using Azure.Identity;
+using HandlenettAPI.Configurations;
+using HandlenettAPI.Interfaces;
 using HandlenettAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.Graph.ExternalConnectors;
 using Microsoft.Identity.Web;
@@ -48,30 +52,58 @@ builder.Services.AddCors(options =>
         builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod().WithOrigins("http://localhost:3000", "http://localhost:3000");
     });
 });
-builder.Services.AddHttpClient<WeatherService>();
 
+//Inject specific HttpClients
+builder.Services.AddHttpClient<WeatherService>();
 builder.Services.AddHttpClient("SlackClient", client =>
 {
     client.BaseAddress = new Uri("https://slack.com/api/");
     client.DefaultRequestHeaders.Accept.Clear();
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
-builder.Services.AddScoped<SlackService>();
 
+var keyVaultName = builder.Configuration["AzureKeyVaultNameProd"];
+if (string.IsNullOrEmpty(keyVaultName))
+{
+    throw new InvalidOperationException("Missing Azure Key Vault configuration: AzureKeyVaultNameProd");
+}
 builder.Configuration.AddAzureKeyVault(
-        new Uri($"https://{builder.Configuration["AzureKeyVaultNameProd"]}.vault.azure.net/"),
+        new Uri($"https://{keyVaultName}.vault.azure.net/"),
         new DefaultAzureCredential());
 //DefaultAzureCredential() is handled by enabling system assigned identity on container app and creating access policy in kv
 
+//Add strongly-typed configuration with runtime validation
+builder.Services.AddOptions<AzureCosmosDBSettings>()
+    .Bind(builder.Configuration.GetSection("AzureCosmosDBSettings"))
+    .ValidateDataAnnotations() // Validates [Required] attributes at runtime
+    .ValidateOnStart(); // Ensures validation happens at application startup
+
+
 // Add services to the container.
+//TODO: null handling errors for config sections
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
         .EnableTokenAcquisitionToCallDownstreamApi()
         .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
         .AddInMemoryTokenCaches();
 
+
+
+//Dependency Service Injections
+builder.Services.AddScoped<SlackService>();
+builder.Services.AddScoped<ICosmosDBService>(provider =>
+{
+    var settings = provider.GetRequiredService<IOptions<AzureCosmosDBSettings>>().Value;
+
+    return new CosmosDBService(
+        new CosmosClient(settings.ConnectionString),
+        settings.DatabaseName,
+        settings.ContainerName
+    );
+});
+
+//builder.Services.AddSingleton(graphClient); // A single instance is shared across the entire application lifetime, do not use for databaseconnections (maybe just a static cache)
 //TODO: add AzureSQLContext singleton
-//builder.Services.AddSingleton(graphClient);
 
 
 

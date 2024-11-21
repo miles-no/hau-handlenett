@@ -9,15 +9,13 @@ namespace HandlenettAPI.Services
     public class WeatherService
     {
         private readonly HttpClient _httpClient;
-        private readonly ConnectionMultiplexer _redis;
+        private readonly IConnectionMultiplexer _redis;
 
-        public WeatherService(HttpClient httpClient, IConfiguration config)
+        public WeatherService(HttpClient httpClient, IConnectionMultiplexer redis)
         {
             _httpClient = httpClient;
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "Miles Haugesund Handlenett/1.0 (roger.torkelsen@miles.no)");
-            var redisConnString = config.GetConnectionString("AzureRedisCache") ?? throw new InvalidOperationException("Missing redis config");
-            _redis = ConnectionMultiplexer.Connect(redisConnString);
-            
+            _redis = redis;
         }
 
         public async Task<Weather> GetWeatherByCoordinatesAsync(double latitude, double longitude)

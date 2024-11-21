@@ -10,6 +10,8 @@ using Microsoft.Graph;
 using Microsoft.Graph.ExternalConnectors;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
+using System.Configuration;
 using System.Net.Http.Headers;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
@@ -53,15 +55,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-//Inject specific HttpClients
-builder.Services.AddHttpClient<WeatherService>();
-builder.Services.AddHttpClient("SlackClient", client =>
-{
-    client.BaseAddress = new Uri("https://slack.com/api/");
-    client.DefaultRequestHeaders.Accept.Clear();
-    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-});
-
 var keyVaultName = builder.Configuration["AzureKeyVaultNameProd"];
 if (string.IsNullOrEmpty(keyVaultName))
 {
@@ -87,9 +80,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
         .AddInMemoryTokenCaches();
 
-
-
-//Dependency Service Injections
+//Dependency Injection
 builder.Services.AddScoped<SlackService>();
 builder.Services.AddScoped<ICosmosDBService>(provider =>
 {
@@ -101,9 +92,19 @@ builder.Services.AddScoped<ICosmosDBService>(provider =>
         settings.ContainerName
     );
 });
-
-//builder.Services.AddSingleton(graphClient); // A single instance is shared across the entire application lifetime, do not use for databaseconnections (maybe just a static cache)
-//TODO: add AzureSQLContext singleton
+var redisConnString = builder.Configuration.GetConnectionString("AzureRedisCache") ?? throw new InvalidOperationException("Missing redis config");
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(redisConnString)); //heavy resource and is designed to be reused
+builder.Services.AddHttpClient<WeatherService>();
+builder.Services.AddHttpClient("SlackClient", client =>
+{
+    client.BaseAddress = new Uri("https://slack.com/api/");
+    client.DefaultRequestHeaders.Accept.Clear();
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+});
+//builder.Services.AddSingleton(); // A single instance is shared across the entire application lifetime
+//builder.Services.AddHttpClient<T>() //DI container registers T as a transient service by default.
+//builder.Services.AddScoped<T>() // T
+//TODO: add AzureSQLContext
 
 
 
@@ -133,7 +134,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Your API v1");
-        c.OAuthClientId("6409e25f-f9b7-4b70-a84c-6c077440d740");
+        c.OAuthClientId(builder.Configuration["AzureAd:ClientId"]);
         c.OAuthAppName("Your API Swagger");
     });
 }

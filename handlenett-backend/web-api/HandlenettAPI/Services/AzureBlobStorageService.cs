@@ -8,51 +8,56 @@
     public class AzureBlobStorageService
     {
         private readonly BlobServiceClient _blobServiceClient;
-        private readonly IConfiguration _config;
-        private readonly string _containerName;
-
-        public AzureBlobStorageService(string containerName, IConfiguration config)
+        public AzureBlobStorageService(string connectionString)
         {
-            _config = config;
-            _containerName = containerName;
-            var asd = _config.GetConnectionString("AzureStorageUsingAccessKey");
-            _blobServiceClient = new BlobServiceClient(_config.GetConnectionString("AzureStorageUsingAccessKey"));
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new ArgumentException("Azure Storage connection string is missing.");
+            }
+            _blobServiceClient = new BlobServiceClient(connectionString);
         }
 
-        public async Task UploadBlobAsync(string blobName, Stream content)
+        public async Task UploadBlobAsync(string containerName, string blobName, Stream content)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(content, overwrite: true);
         }
 
         // Get existing blob
-        public async Task<Stream> GetBlobAsync(string blobName)
+        public async Task<Stream> GetBlobAsync(string containerName, string blobName)
         {
-            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = blobContainerClient.GetBlobClient(blobName);
             BlobDownloadInfo download = await blobClient.DownloadAsync();
             return download.Content;
         }
 
-        public string GenerateContainerSasToken()
+        public string GenerateContainerSasToken(string containerName, int hoursValid = 48)
         {
-            var blobServiceClient = new BlobServiceClient(_config.GetConnectionString("AzureStorageUsingAccessKey"));
+            var blobContainerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
             var sasBuilder = new BlobSasBuilder
             {
-                BlobContainerName = _containerName,
+                BlobContainerName = containerName,
                 Resource = "c", // container-level SAS
-                ExpiresOn = DateTimeOffset.UtcNow.AddHours(48)
+                ExpiresOn = DateTimeOffset.UtcNow.AddHours(hoursValid)
             };
 
             sasBuilder.SetPermissions(BlobContainerSasPermissions.Read);
+            if (!_blobServiceClient.CanGenerateAccountSasUri)
+            {
+                throw new InvalidOperationException("The provided client cannot generate SAS tokens.");
+            }
 
-            var sasToken = sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(
-                blobServiceClient.AccountName,
-                _config.GetValue<string>("AzureStorage:AccountKey"))).ToString();
+            return blobContainerClient.GenerateSasUri(sasBuilder).Query;
 
-            return sasToken;
+            //Old code that worked, test new solution before deleting
+            //var sasToken = sasBuilder.ToSasQueryParameters(new StorageSharedKeyCredential(
+            //    _blobServiceClient.AccountName,
+            //    _config.GetValue<string>("AzureStorage:AccountKey"))).ToString();
+
+            //return sasToken;
         }
 
     }

@@ -1,6 +1,7 @@
 using Azure.Identity;
 using HandlenettAPI.Configurations;
 using HandlenettAPI.Interfaces;
+using HandlenettAPI.Middleware;
 using HandlenettAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Azure.Cosmos;
@@ -70,7 +71,10 @@ builder.Services.AddOptions<AzureCosmosDBSettings>()
     .Bind(builder.Configuration.GetSection("AzureCosmosDBSettings"))
     .ValidateDataAnnotations() // Validates [Required] attributes at runtime
     .ValidateOnStart(); // Ensures validation happens at application startup
-
+builder.Services.AddOptions<SlackSettings>()
+    .Bind(builder.Configuration.GetSection("SlackSettings"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // Add services to the container.
 //TODO: null handling errors for config sections
@@ -81,7 +85,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddInMemoryTokenCaches();
 
 //Dependency Injection
-builder.Services.AddScoped<SlackService>();
 builder.Services.AddScoped<ICosmosDBService>(provider =>
 {
     var settings = provider.GetRequiredService<IOptions<AzureCosmosDBSettings>>().Value;
@@ -92,15 +95,48 @@ builder.Services.AddScoped<ICosmosDBService>(provider =>
         settings.ContainerName
     );
 });
-var redisConnString = builder.Configuration.GetConnectionString("AzureRedisCache") ?? throw new InvalidOperationException("Missing redis config");
+var redisConnString = builder.Configuration.GetConnectionString("AzureRedisCache") ?? throw new InvalidOperationException("Missing AzureRedisCache config");
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => ConnectionMultiplexer.Connect(redisConnString)); //heavy resource and is designed to be reused
 builder.Services.AddHttpClient<WeatherService>();
-builder.Services.AddHttpClient("SlackClient", client =>
+builder.Services.AddHttpClient<SlackService>("SlackClient", client =>
 {
     client.BaseAddress = new Uri("https://slack.com/api/");
     client.DefaultRequestHeaders.Accept.Clear();
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+    // Configure static Authorization header
+    var slackToken = builder.Configuration["SlackSettings:SlackBotUserOAuthToken"];
+    if (string.IsNullOrEmpty(slackToken))
+    {
+        throw new InvalidOperationException("Slack Bot User OAuth token is missing.");
+    }
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", slackToken);
 });
+builder.Services.AddScoped<SlackService>();
+
+//User
+builder.Services.AddScoped<UserService>(sp =>
+{
+    var dbContext = sp.GetRequiredService<AzureSQLContext>();
+    var blobStorageService = sp.GetRequiredService<AzureBlobStorageService>();
+    var slackSettings = sp.GetRequiredService<IOptions<SlackSettings>>().Value;
+
+    return new UserService(dbContext, blobStorageService, slackSettings.ContainerNameUserImages); //get from builder.configuration instead of strongly typed?
+});
+builder.Services.AddScoped<AzureSQLContext>();
+builder.Services.AddScoped<AzureBlobStorageService>(sp =>
+{
+    var connectionString = builder.Configuration["ConnectionStrings:AzureStorageUsingAccessKey"];
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new InvalidOperationException("Azure Storage connection string is missing.");
+    }
+
+    return new AzureBlobStorageService(connectionString);
+});
+
+builder.Services.AddScoped<UserInitializationService>();
+
 //builder.Services.AddSingleton(); // A single instance is shared across the entire application lifetime
 //builder.Services.AddHttpClient<T>() //DI container registers T as a transient service by default.
 //builder.Services.AddScoped<T>() // T
@@ -142,8 +178,9 @@ if (app.Environment.IsDevelopment())
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); //validates tokens
+app.UseAuthorization(); //enforces [Authorize] attributes
+app.UseMiddleware<UserInitializationMiddleware>(); //Custom implementation of SQL database user verification
 app.MapControllers().RequireCors(MyAllowSpecificOrigins);
 
 ConfigurationHelper.Initialize(app.Configuration);

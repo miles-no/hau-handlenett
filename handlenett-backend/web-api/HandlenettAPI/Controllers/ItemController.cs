@@ -1,12 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
-using Microsoft.Graph;
 using HandlenettAPI.Models;
-using HandlenettAPI.Services;
-using Microsoft.Azure.Cosmos;
 using HandlenettAPI.DTO;
-using Microsoft.Extensions.Configuration;
 using HandlenettAPI.Interfaces;
 
 namespace HandlenettAPI.Controllers

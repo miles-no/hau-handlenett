@@ -1,7 +1,6 @@
-﻿using Azure.Storage.Blobs;
+﻿using HandlenettAPI.Configurations;
 using HandlenettAPI.Models;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace HandlenettAPI.Services
@@ -9,47 +8,50 @@ namespace HandlenettAPI.Services
     public class SlackService
     {
         private readonly HttpClient _httpClient;
-        private  readonly IConfiguration _config;
+        private readonly AzureBlobStorageService _blobStorageService;
+        private readonly SlackSettings _settings;
 
-        public SlackService(IHttpClientFactory httpClientFactory, IConfiguration config)
+        public SlackService(HttpClient httpClient, AzureBlobStorageService blobStorageService, IOptions<SlackSettings> options)
         {
-            _httpClient = httpClientFactory.CreateClient("SlackClient");
-            _config = config;
+            _httpClient = httpClient;
+            _blobStorageService = blobStorageService;
+            _settings = options.Value;
         }
 
-        public async Task<string> CopyImageToAzureBlobStorage(string oauthToken, SlackUser slackUser)
+        public string GetSlackToken()
+        {
+            if (string.IsNullOrEmpty(_settings.SlackBotUserOAuthToken))
+            {
+                throw new InvalidOperationException("Slack Bot User OAuth token is not configured.");
+            }
+            return _settings.SlackBotUserOAuthToken;
+        }
+
+        public async Task<string> CopyImageToAzureBlobStorage(SlackUser slackUser)
         {
             try
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
-
                 using (HttpResponseMessage response = await _httpClient.GetAsync(slackUser.ImageUrlSlack, HttpCompletionOption.ResponseHeadersRead))
                 {
                     response.EnsureSuccessStatusCode();
 
-                    //TODO: Mer ryddig å ha get function her og upload i azureService, men hvordan håndtere stream da?
                     using (Stream imageStream = await response.Content.ReadAsStreamAsync())
                     {
-                        var containerName = _config.GetValue<string>("AzureStorage:ContainerNameUserImages");
-                        var accountName = _config.GetValue<string>("AzureStorage:AccountName");
-                        if (string.IsNullOrEmpty(containerName) || string.IsNullOrEmpty(accountName)) throw new InvalidOperationException("Missing storage config");
+                        var blobName = $"{slackUser.Id}.jpg";
+                        await _blobStorageService.UploadBlobAsync(_settings.ContainerNameUserImages, blobName, imageStream);
 
-                        var blobService = new AzureBlobStorageService(containerName, _config);
-                        await blobService.UploadBlobAsync(slackUser.Id + ".jpg", imageStream);
-                        return $"https://{accountName}.blob.core.windows.net/{containerName}/{slackUser.Id}.jpg";
+                        return $"{_settings.BlobStoragePathIncludingContainer}{blobName}";
                     }
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message, ex);
+                throw new Exception("Error copying image to Azure Blob Storage", ex);
             }
         }
 
-        public async Task<SlackUser?> GetUserByEmailAsync(string oauthToken, string email)
+        public async Task<SlackUser?> GetUserByEmailAsync(string email)
         {
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", oauthToken);
-
             var response = await _httpClient.GetAsync("users.list");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
